@@ -5,7 +5,7 @@
     int yylex();
     int findMapping(const char *type);
     void addMapping(const char *type, int token);
-    void yyerror(const char *s) { printf("Error:  %s\n", s);exit(1); }
+    void yyerror(const char *s) { printf("Error:  %s\n", s); }
 %}
 
 %union{
@@ -21,15 +21,17 @@
 %%
 
 program : 
-    |program expr { /* 语义动作 */std::cout<<"$1<<$2<<$3<<$4"<<std::endl; }
-    
+    |program expr { /* 语义动作 */std::cout<<"$"<<std::endl; }
+
     ;
 
-expr:
-      TYPE_INT NAME TEQUAL INT { /* 语义动作 */std::cout<<$1<<$2<<$3<<$4<<std::endl; }
+expr:TYPE_INT NAME {std::cout<<$1<<$2<<std::endl;}
+    |  TYPE_INT NAME TEQUAL INT { /* 语义动作 */std::cout<<$1<<$2<<$4<<std::endl; }
     
     | error { yyerror("Syntax error"); }
     ;
+
+
 
 %%
 
