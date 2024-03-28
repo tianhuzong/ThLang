@@ -29,6 +29,7 @@ program :
 
 stmts : stmt {std::cout<< "语句s\n";}
 	  | stmts OP stmt {std::cout<< "语句ss\n";}
+      | stmts OP {std::cout<<"语句sss\n";}
 	  ;
 
 stmt : var {std::cout<<"语句\n";}
