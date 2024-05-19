@@ -1,6 +1,7 @@
 %{
 #include <iostream>
 #include <string>
+#include "nn.h"
 #include "uthash.h"
 #include "parser.hpp"
 
@@ -46,7 +47,8 @@ TokenMap *tokenMap = NULL; // 创建哈希表
 }
 
 =              { cout << "line"<<yylineno<<"  type:TOKEN,value:"<<TEQUAL<<"\n";return TOKEN(TEQUAL); }
-\n             { /*printf("line%d type:SPACE,value:\\n \n",yylineno); */}
+\n             { return TOKEN(NEWLINE);}
+;              {return TOKEN(OP);}
 .              { /* 忽略其他字符 cout<<"line"<<yylineno<<" type:ERRORTOKEN,value:"<<yytext<<"\n"; */}
 
 %%
