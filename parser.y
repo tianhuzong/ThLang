@@ -2,6 +2,9 @@
 %{
     #include <bits/stdc++.h>
     #include <stdio.h>
+    #include <stdlib.h>
+    #include <cstdio>
+    #include <string>
     #include "nn.h"
     int yylex();
     int findMapping(const char *type);
@@ -9,39 +12,42 @@
     void yyerror(const char *s) { printf("Error:  %s\n", s); }
     int nums;
     
+    
+    
 %}
 
 %union{
-    char *string; 
+    std::string *string; 
     int token;
     //char* types;
     Node *node;
-    Type *types;
-    Value *values;
+    Type_ *types;
+    std::string *values;
 }
 
-%token <token> TYPE_INT TYPE_STRING TYPE_BOOL TYPE_BYTES
+
 %token <token> TEQUAL
 %token <token> NEWLINE OP
-%token <string> NAME INT
+%token <string> NAME INT STRING FLOAT
 %token ERRORTOKEN
 
-%type <node> t2
-%type <token> types
-%type <values> value
+
+%type <values> types 
+%type <node> value
 %%
 
 program : 
+    | program  stmts { /* 语义动作 */std::cout<<"\n"<<std::endl; }
     | program  stmts NEWLINE{ /* 语义动作 */std::cout<<"\n"<<std::endl; }
-    
     ;
 
-stmts : stmt {std::cout<< "语句s\n";}
-	  | stmts OP stmt {std::cout<< "语句ss\n";}
-      | stmts OP {std::cout<<"语句sss\n";}
+stmts : stmt {std::cout<< "语句_单独\n";}
+	  | stmts OP stmt {std::cout<< "语句同行分号\n";}
+      | stmts OP {std::cout<<"语句sss分号结尾\n";}
+      | stmts NEWLINE stmt {std::cout<<"语句\n";}
 	  ;
 
-stmt : var {std::cout<<"语句\n";}
+stmt : var {std::cout<<"语句 "<<"\n";}
 	 
      ;
 
@@ -56,30 +62,42 @@ var_type_stmt:
     ;
 
 var_stmt:
-    types NAME TEQUAL value { /* 语义动作 */std::cout<<$1<<" "<<$2<<" "<<$4<<std::endl;  nums++;}
+    types NAME TEQUAL value { /* 语义动作 */std::cout<<*$1<<" "<<*$2<<" "<<$4<<std::endl;  nums++;}
     
     ;
-types: TYPE_INT {$$ = TYPE_INT;}
-    | TYPE_BOOL {$$ = TYPE_BOOL;}
-    | TYPE_BYTES {$$ = TYPE_BYTES;}
-    | TYPE_STRING {$$ = TYPE_STRING;}
+types: NAME {$$ = $1;}
     ;
 
-value : INT{$$ = new Value((char*)$1);delete $1;}
-    | NAME {$$ = new Value((char*)$1);delete $1;}
+value: INT {$$ = new IntAst(atol($1->c_str()));delete $1;}
+    | STRING {$$ = new StringAst($1->c_str());delete $1;}
+    //| NAME {$$ = $1;}
+    | FLOAT {$$ = new FloatAst(atof($1->c_str()));delete $1;}
+    | error { /*yyerror("Syntax error"); */}
     ;
-%%
-
-int main() {
-    std::cout<<"Hi,there!\n";
-    addMapping("文本型",TYPE_STRING);
-    addMapping("整数型",TYPE_INT);
-    addMapping("布尔型",TYPE_BOOL);
-    addMapping("字节型",TYPE_BYTES);
-
-
-    yyparse();
-    std::cout << nums <<std::endl;
-    
-    return 0;
+/*
+value : INT {
+    std::string tips = "your int is ";
+    std::string result = tips + std::to_string($1);
+    char* str = new char[result.length() + 1];
+    strcpy(str, result.c_str());
+    delete $1;
+    $$ = str;
 }
+| NAME {
+    std::string tips = "your NAME is ";
+    std::string result = tips + $1;
+    char* str = new char[result.length() + 1];
+    strcpy(str, result.c_str());
+    delete $1;
+    $$ = str;
+}
+| STRING {
+    std::string tips = "your STRING is ";
+    std::string result = tips + $1;
+    char* str = new char[result.length() + 1];
+    strcpy(str, result.c_str());
+    $$ = str;
+}
+;
+*/
+%%
