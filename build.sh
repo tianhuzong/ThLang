@@ -1,4 +1,4 @@
 #! /usr/bin/bash
 bison -d parser.y -o parser.cpp
 reflex --yy lex.l
-clang++ parser.cpp lex.yy.cpp -o lex -lreflex
+clang++ main.cpp parser.cpp lex.yy.cpp codegen.cpp -o lex -lreflex  `llvm-config --cxxflags --ldflags --system-libs --libs`
