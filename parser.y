@@ -1,103 +1,78 @@
-
-%{
-    #include <bits/stdc++.h>
-    #include <stdio.h>
-    #include <stdlib.h>
-    #include <cstdio>
-    #include <string>
-    #include "nn.h"
-    int yylex();
-    int findMapping(const char *type);
-    void addMapping(const char *type, int token);
-    void yyerror(const char *s) { printf("Error:  %s\n", s); }
-    int nums;
-    
-    
-    
-%}
-
-%union{
-    std::string *string; 
-    int token;
-    //char* types;
-    Node *node;
-    Type_ *types;
-    std::string *values;
-}
+#include "llvm/IR/Value.h"
+#include "llvm/IR/Type.h"
+#include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/Module.h"
+#include "llvm/IR/Constants.h"
+#include <memory>
+#include <iostream>
+#include <unordered_map>
+using namespace llvm;
+void print_value(long double something);
+void print_value(long long something);
+void print_value(std::string something);
 
 
-%token <token> TEQUAL
-%token <token> NEWLINE OP
-%token <string> NAME INT STRING FLOAT
-%token ERRORTOKEN
+
+class CodeGenContext ;
+class Node {
+public:
+	virtual ~Node() {};
+	virtual Value* codeGen(CodeGenContext& context) { return NULL; }
+};
+
+class ExprAst : public Node{};
+class StmtAst : public Node{};
+class ConstantAst : public Node{};
 
 
-%type <values> types 
-%type <node> value
-%%
+class IntAst : public ConstantAst {
+    public:
+        virtual ~IntAst() {};
+        long long value;
+        IntAst(long long value) : value(value){};
+        virtual Value* codeGen(CodeGenContext& context) ;
+};
 
-program : 
-    | program  stmts { /* 语义动作 */std::cout<<"\n"<<std::endl; }
-    | program  stmts NEWLINE{ /* 语义动作 */std::cout<<"\n"<<std::endl; }
-    ;
+class FloatAst : public ConstantAst {
+    public:
+        long double value;
+        FloatAst(long double value) : value(value){};
+        virtual llvm::Value* codeGen(CodeGenContext& context) ;
+};
 
-stmts : stmt {std::cout<< "语句_单独\n";}
-	  | stmts OP stmt {std::cout<< "语句同行分号\n";}
-      | stmts OP {std::cout<<"语句sss分号结尾\n";}
-      | stmts NEWLINE stmt {std::cout<<"语句\n";}
-	  ;
-
-stmt : var {std::cout<<"语句 "<<"\n";}
-	 
-     ;
+class StringAst : public ConstantAst {
+    public:
+        std::string value;
+        StringAst(std::string value) : value(value){};
+        virtual llvm::Value* codeGen(CodeGenContext& context) ;
+};
 
 
-var: var_type_stmt
-    | var_stmt 
-    ;
+class NameAst : public ExprAst{
+    public:
+        std::string name;
+        NameAst(std::string name) : name(name){};
+        virtual Value* codeGen(CodeGenContext& context) ;
+};
 
-var_type_stmt:
-    types NAME {std::cout<<$1<<" "<<$2<<std::endl;nums++;}
-    | error { /*yyerror("Syntax error"); */}
-    ;
+class BlockAst_temp{
+    public:
 
-var_stmt:
-    types NAME TEQUAL value { /* 语义动作 */std::cout<<*$1<<" "<<*$2<<" "<<$4<<std::endl;  nums++;}
-    
-    ;
-types: NAME {$$ = $1;}
-    ;
+};
 
-value: INT {$$ = new IntAst(atol($1->c_str()));delete $1;}
-    | STRING {$$ = new StringAst($1->c_str());delete $1;}
-    //| NAME {$$ = $1;}
-    | FLOAT {$$ = new FloatAst(atof($1->c_str()));delete $1;}
-    | error { /*yyerror("Syntax error"); */}
-    ;
-/*
-value : INT {
-    std::string tips = "your int is ";
-    std::string result = tips + std::to_string($1);
-    char* str = new char[result.length() + 1];
-    strcpy(str, result.c_str());
-    delete $1;
-    $$ = str;
-}
-| NAME {
-    std::string tips = "your NAME is ";
-    std::string result = tips + $1;
-    char* str = new char[result.length() + 1];
-    strcpy(str, result.c_str());
-    delete $1;
-    $$ = str;
-}
-| STRING {
-    std::string tips = "your STRING is ";
-    std::string result = tips + $1;
-    char* str = new char[result.length() + 1];
-    strcpy(str, result.c_str());
-    $$ = str;
-}
-;
-*/
-%%
+
+
+class Type_{
+    Type_();
+};
+class Value {
+public:
+    Value() = default;
+    Value(const char* a) : str_(a) {std::cout << "Value(const char* a) is " << a << std::endl; }
+    static Value fromString(const char* a) { return Value(a); }
+private:
+    std::string str_;
+};
+
+
+
