@@ -5,10 +5,15 @@
 #include "llvm/IR/Constants.h"
 #include <memory>
 #include <iostream>
+#include <unordered_map>
 using namespace llvm;
+void print_value(long double something);
+void print_value(long long something);
+void print_value(std::string something);
 
 
-class CodeGenContext;
+
+class CodeGenContext ;
 class Node {
 public:
 	virtual ~Node() {};
@@ -30,8 +35,8 @@ class IntAst : public ConstantAst {
 
 class FloatAst : public ConstantAst {
     public:
-        double value;
-        FloatAst(double value) : value(value){};
+        long double value;
+        FloatAst(long double value) : value(value){};
         virtual llvm::Value* codeGen(CodeGenContext& context) ;
 };
 
@@ -41,6 +46,21 @@ class StringAst : public ConstantAst {
         StringAst(std::string value) : value(value){};
         virtual llvm::Value* codeGen(CodeGenContext& context) ;
 };
+
+
+class NameAst : public ExprAst{
+    public:
+        std::string name;
+        NameAst(std::string name) : name(name){};
+        virtual Value* codeGen(CodeGenContext& context) ;
+};
+
+class BlockAst_temp{
+    public:
+
+};
+
+
 
 class Type_{
     Type_();
@@ -53,3 +73,6 @@ public:
 private:
     std::string str_;
 };
+
+
+
