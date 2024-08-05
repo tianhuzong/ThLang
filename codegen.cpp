@@ -2,8 +2,9 @@
 #include "codegen.h"
 
 std::unordered_map<std::string, llvm::Value*> symTable;
-bool is_in_debug = true; //TODO:remove
 
+
+const static bool is_in_debug = true; //TODO:remove
 void print_value(std::string something){
     if (is_in_debug == true){
         std::cout << "\033[31m打印字符串" << something << "\033[0m\n";
@@ -22,6 +23,7 @@ void print_value(long double something){
         std::cout << "\033[31m打印浮点数" << something << "\033[0m\n";
     }
 }
+
 
 void CodeGenContext::codeGen(std::vector<Node*> nodes){
     for (auto node : nodes){
