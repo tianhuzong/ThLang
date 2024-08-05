@@ -10,6 +10,7 @@ int main(int argc, char **argv){
 
     yyparse();
     CodeGenContext myC("main");
+    myC.codeGen(program);
 
 }
 
