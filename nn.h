@@ -7,9 +7,7 @@
 #include <iostream>
 #include <unordered_map>
 using namespace llvm;
-void print_value(long double something);
-void print_value(long long something);
-void print_value(std::string something);
+
 
 
 
