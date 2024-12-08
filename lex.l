@@ -21,7 +21,7 @@
 
 
 
-\"[^"\n]*\"     { cout <<"line"<<yylineno<<"  type:STRING,value:"<<yytext<<"\n"; SAVE_TOKEN; return STRING; }
+(\"[^"\n]*\"|\'[^"\n]*\')     { cout <<"line"<<yylineno<<"  type:STRING,value:"<<yytext<<"\n"; SAVE_TOKEN; return STRING; }
 (([-+]?\d+\.\d{0,})|(\d+\.?\d{0,}[eE][+-]?\d+)) {
     cout << "line"<<yylineno<<"  type:FLOAT,value:"<<yytext<<"\n";
     SAVE_TOKEN;
