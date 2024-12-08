@@ -3,6 +3,7 @@
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Constants.h"
+#include "llvm/Support/raw_ostream.h"
 #include <memory>
 #include <iostream>
 #include <unordered_map>
@@ -14,7 +15,8 @@ using namespace llvm;
 class CodeGenContext ;
 class Node {
 public:
-	virtual ~Node() {};
+    //Node() = default;
+	virtual ~Node() = default;
 	virtual Value* codeGen(CodeGenContext& context) { return NULL; }
 };
 
@@ -25,7 +27,6 @@ class ConstantAst : public Node{};
 
 class IntAst : public ConstantAst {
     public:
-        virtual ~IntAst() {};
         long long value;
         IntAst(long long value) : value(value){};
         virtual Value* codeGen(CodeGenContext& context) ;
