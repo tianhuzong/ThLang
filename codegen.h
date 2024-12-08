@@ -7,5 +7,6 @@ class CodeGenContext {
         
         CodeGenContext(std::string module_name) {module = new Module(module_name,MyContext);}
         void codeGen(std::vector<Node*> nodes);
+        llvm::Function* create_main_function();
 
 };
