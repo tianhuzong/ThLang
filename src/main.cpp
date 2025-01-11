@@ -1,5 +1,5 @@
 #include <iostream>
-#include "nn.h"
+#include "node.h"
 #include "codegen.h"
 #include "parser.hpp"
 using namespace std;
