@@ -1,7 +1,7 @@
-#include "nn.h"
+#include "node.h"
 #include "codegen.h"
 
-std::unordered_map<std::string, llvm::Value*> symTable;
+
 
 
 const static bool is_in_debug = true; //TODO:remove

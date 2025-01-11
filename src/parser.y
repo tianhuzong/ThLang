@@ -5,11 +5,11 @@
     #include <stdlib.h>
     #include <cstdio>
     #include <string>
-    #include "nn.h"
+    #include "node.h"
     int yylex();
     int findMapping(const char *type);
     void addMapping(const char *type, int token);
-    void yyerror(const char *s) { printf("Error:  %s\n", s); }
+    void yyerror(const char *s) { printf("Error:  %s\n", s);exit(1); }
     int nums;
     std::vector<Node*> program;
     
