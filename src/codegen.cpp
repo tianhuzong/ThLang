@@ -24,50 +24,90 @@ void print_value(long double something){
     }
 }
 
+namespace thlang{
 
-void CodeGenContext::codeGen(std::vector<Node*> nodes){
-    for (auto node : nodes){
-        node->codeGen(*this);
+void CodeGenContext::codegen(thlang::NModule& node){
+    node.codegen(*this);
+}
+
+llvm::Value* NModule::codegen(thlang::CodeGenContext& context){
+    return this->block->codegen(context);
+}
+
+llvm::Value* NBlock::codegen(thlang::CodeGenContext& context){
+    llvm::Value* last = nullptr;
+    for(auto& it : *this->stmts){
+        last = it->codegen(context);
     }
+    return last; //可能为nullptr
 }
 
-llvm::Function* create_main_function(){
-    return nullptr;
-}
-
-
-llvm::Value* IntAst::codeGen(CodeGenContext& context){
-	print_value(value);
-	llvm::Value * res = llvm::ConstantInt::get(Type::getInt64Ty(MyContext), value, true);
+llvm::Value* IntAst::codegen(thlang::CodeGenContext& context){
+	llvm::Value * res = llvm::ConstantInt::get(llvm::Type::getInt64Ty(context.getContext()), value, true);
     return res;
 }
 
-llvm::Value* FloatAst::codeGen(CodeGenContext& context){
-	print_value(value);
-    return llvm::ConstantFP::get(Type::getDoubleTy(MyContext), value);
+llvm::Value* FloatAst::codegen(thlang::CodeGenContext& context){
+    return llvm::ConstantFP::get(llvm::Type::getDoubleTy(context.getContext()), value);
 }
 
-llvm::Value* StringAst::codeGen(CodeGenContext& context){
-
-	print_value(value);
+llvm::Value* StringAst::codegen(thlang::CodeGenContext& context){
     /*auto it = symTable.find(value);
     if(it != symTable.end()){
         return it->second;
     }*/
-    llvm::Constant *strConst1 = llvm::ConstantDataArray::getString(MyContext,
-			value);
-    std::cout<<value.size()<<"\n";
-	llvm::Value *globalVar1 = new llvm::GlobalVariable(*context.module,
-			strConst1->getType(), true, llvm::GlobalValue::PrivateLinkage,
-			strConst1, ".str");
-	//symTable[value] = globalVar1;
-	return globalVar1;
+    return context.builder.CreateGlobalString(value);
 }
 
 
-llvm::Value* NameAst::codeGen(CodeGenContext& context){
-    print_value(name);
+llvm::Value* NameAst::codegen(thlang::CodeGenContext& context){
     //TODO:修改字段
     //return new LoadInst(context.locals()[name]->getType(),context.locals()[name], name, false, context.currentBlock());
-    return  llvm::ConstantInt::get(Type::getInt64Ty(MyContext), 0, true);
+    return  llvm::ConstantInt::get(llvm::Type::getInt64Ty(context.getContext()), 0, true);
 }
+
+llvm::Value* BoolAst::codegen(thlang::CodeGenContext& context) {
+    return nullptr;
+}
+
+llvm::Value* UnOpAst::codegen(thlang::CodeGenContext& context) {
+    return nullptr;
+}
+
+llvm::Value* BinOpAst::codegen(thlang::CodeGenContext& context) {
+    return nullptr;
+}
+
+llvm::Value* AssignAst::codegen(thlang::CodeGenContext& context) {
+    return nullptr;
+}
+
+llvm::Value* ExprStmtAst::codegen(CodeGenContext& context) {
+    return nullptr;
+}
+
+llvm::Value* VarStmtAst::codegen(CodeGenContext& context) {
+    return nullptr;
+}
+
+llvm::Value* IfStmtAst::codegen(CodeGenContext& context) {
+    return nullptr;
+}
+
+llvm::Value* ForStmtAst::codegen(CodeGenContext& context) {
+    return nullptr;
+}
+
+llvm::Value* WhileStmtAst::codegen(CodeGenContext& context) {
+    return nullptr;
+}
+
+llvm::Value* ReturnStmtAst::codegen(CodeGenContext& context) {
+    return nullptr;
+}
+
+llvm::Value* FunctionStmtAst::codegen(CodeGenContext& context) {
+    return nullptr;
+}
+
+} // namespace thlang

@@ -49,17 +49,45 @@ extern int yydebug;
 # define YYTOKENTYPE
   enum yytokentype
   {
-    TEQUAL = 258,
-    NEWLINE = 259,
-    SEMICOLON = 260,
-    COMMA = 261,
-    LPAREN = 262,
-    RPAREN = 263,
-    NAME = 264,
-    INT = 265,
-    STRING = 266,
-    FLOAT = 267,
-    ERRORTOKEN = 268
+    TOKEN_INT = 258,
+    TOKEN_FLOAT = 259,
+    TOKEN_PLUS = 260,
+    TOKEN_MINUS = 261,
+    TOKEN_MUL = 262,
+    TOKEN_DIV = 263,
+    LPAREN = 264,
+    RPAREN = 265,
+    LBRACKET = 266,
+    RBRACKET = 267,
+    LBRACE = 268,
+    RBRACE = 269,
+    TOKEN_RETURN = 270,
+    TOKEN_IF = 271,
+    TOKEN_ELSE = 272,
+    TOKEN_WHILE = 273,
+    TOKEN_FOR = 274,
+    TOKEN_EXTERN = 275,
+    TOKEN_EQUAL = 276,
+    TOKEN_CEQ = 277,
+    TOKEN_NEL = 278,
+    TOKEN_NLT = 279,
+    TOKEN_NLE = 280,
+    TOKEN_NGT = 281,
+    TOKEN_NGE = 282,
+    TOKEN_XOR = 283,
+    TOKEN_MOD = 284,
+    TOKEN_SHL = 285,
+    TOKEN_SHR = 286,
+    TOKEN_AND = 287,
+    TOKEN_OR = 288,
+    TOKEN_NOT = 289,
+    TOKEN_COMMA = 290,
+    TOKEN_SEMICOLON = 291,
+    TOKEN_DOT = 292,
+    TOKEN_NEWLINE = 293,
+    TOKEN_ID = 294,
+    NUM = 295,
+    TOKEN_STRING = 296
   };
 #endif
 
@@ -67,16 +95,17 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 19 "parser.y"
+#line 20 "parser.y"
 
-    std::string *string; 
+    std::string *string;
+    std::string *str; 
     int token;
-    //char* types;
-    Node *node;
-    Type_ *types;
+    thlang::Node *node;
+    thlang::NBlock *block;
+    thlang::ExprAst *stmt;
     std::string *values;
 
-#line 80 "parser.hpp"
+#line 109 "parser.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -87,6 +116,6 @@ typedef union YYSTYPE YYSTYPE;
 
 extern YYSTYPE yylval;
 
-int yyparse (void);
+int yyparse (thlang::NModule &root_program);
 
 #endif /* !YY_YY_PARSER_HPP_INCLUDED  */

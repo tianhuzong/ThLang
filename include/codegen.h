@@ -1,7 +1,8 @@
-#ifndef CODEGEN_H
-#define CODEGEN_H
+#ifndef THLANG_CODEGEN_H
+#define THLANG_CODEGEN_H
 
 #include <vector>
+#include <unordered_map>
 #include "llvm/IR/Value.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
@@ -21,17 +22,20 @@
 #include <llvm/Support/FileSystem.h>
 #include <llvm/ADT/Optional.h>
 
-#include "Node.h"
-#include "parser.hpp"
+#include "node.h"
+#include "TypeSystem.h"
+
 
 namespace thlang{
+
+using Symbol = std::pair<std::shared_ptr<thlang::Type>, llvm::Value*>;
 
 class CodeGenBlock{
 public:
     llvm::BasicBlock * block;
     llvm::Value * returnValue;
-    std::map<std::string, llvm::Value*> locals;
-    std::map<std::string, bool> isFuncArg;
+    std::unordered_map<std::string, thlang::Symbol> locals;
+    std::unordered_map<std::string, bool> isFuncArg;
 };
 
 class CodeGenContext{
@@ -40,37 +44,58 @@ public:
     
     llvm::LLVMContext llvmContext;
     llvm::IRBuilder<> builder;
-    llvm::AllocaInst* returnAlloca;
-    llvm::BasicBlock* afterBlock = nullptr;
-    bool hasReturnInLoop = false;
     std::unique_ptr<llvm::Module> theModule;
-    std::map<string, llvm::Value*> locals;
+    std::unordered_map<std::string, thlang::Symbol> globals;
+    std::vector<std::shared_ptr<thlang::Type>> types;
     std::string ObjCode;
     std::string moduleName;
     CodeGenContext(std::string moduleName = "main"): builder(llvmContext) {
         this->moduleName = llvm::sys::path::filename(moduleName);
         theModule = std::make_unique<llvm::Module>("main", this->llvmContext);
     }
-    void generateCode(NBlock& root);
-    std::map<std::string, llvm::Value*>& getlocals() { return blocks.back()->locals; }
+    void codegen(NModule& root);
+    std::unordered_map<std::string, thlang::Symbol> getlocals() { 
+        return blocks.back()->locals;
+    }
     llvm::Value* getvalue(std::string name) { 
         for(auto it : blocks){
             if( it->locals.find(name) != it->locals.end() ){
-                return it->locals[name];
+                return it->locals[name].second;
             }
         }
         return nullptr;
     }
-    void setvalue(std::string name, llvm::Value* value) {
+    
+    void setvalue(std::string name, std::shared_ptr<thlang::Type> type, llvm::Value* value) {
         blocks.back()->locals[name] = value;
     }
-    llvm::BasicBlock *currentBlock() { return blocks.back()->block; }
-    void pushBlock(llvm::BasicBlock *block) { blocks.push_back(new CodeGenBlock()); blocks.back()->returnValue = nullptr; blocks.back()->block = block; this->builder.SetInsertPoint(block);}
-    void popBlock() { CodeGenBlock *top = blocks.back(); blocks.pop_back(); delete top; }
-    void setCurrentReturnValue(llvm::Value *value) { blocks.back()->returnValue = value;builder.CreateStore(value, returnAlloca); }
-    void setReturnValueAlloca(llvm::AllocaInst* value) { returnAlloca = value; }
-    llvm::Value* getCurrentReturnValue() { return blocks.back()->returnValue; }
-    llvm::LLVMContext& getContext() { return llvmContext; }
+    
+    llvm::BasicBlock *currentBlock() { 
+        return blocks.back()->block; 
+    }
+    void pushBlock(llvm::BasicBlock *block) { 
+        blocks.push_back(new CodeGenBlock()); 
+        blocks.back()->block = block; 
+        this->builder.SetInsertPoint(block);
+    }
+    void popBlock() { 
+        CodeGenBlock *top = blocks.back(); 
+        blocks.pop_back(); 
+        delete top; 
+    }/*
+    void setCurrentReturnValue(llvm::Value *value) { 
+        blocks.back()->returnValue = value;
+        builder.CreateStore(value, returnAlloca); 
+    }
+    void setReturnValueAlloca(llvm::AllocaInst* value) { 
+        returnAlloca = value; 
+    }
+    llvm::Value* getCurrentReturnValue() { 
+        return blocks.back()->returnValue; 
+    */
+    llvm::LLVMContext& getContext() { 
+        return llvmContext; 
+    }
     void objgen(){
         bool haserror = llvm::verifyModule(*theModule, &llvm::errs());
         if(haserror){
@@ -116,6 +141,6 @@ public:
 }
 
 llvm::Value* LogError(const char* str);
-llvm::Value* LogError(string str);
+llvm::Value* LogError(std::string str);
 
 #endif 
