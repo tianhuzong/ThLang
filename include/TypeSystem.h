@@ -57,7 +57,11 @@ private:
     llvm::LLVMContext& llvmContext;
     std::unordered_map<std::string, std::shared_ptr<thlang::Type>> type_map;
 public:
-    void set_type(std::string& type_name, std::shared_ptr<Type> type);
+    TypeSystem(llvm::LLVMContext& llvmContext) : llvmContext(llvmContext){};
+    void add_type(std::string type_name, std::shared_ptr<Type> type);
+    std::shared_ptr<thlang::Type> get_type(std::string type_name);
+    llvm::Type* get_llvm_type(std::shared_ptr<thlang::Type> type);
+    llvm::Type* get_llvm_type(std::string type_name);
 };
 
 } //namespace thlang
