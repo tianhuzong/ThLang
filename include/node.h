@@ -1,4 +1,3 @@
-#pragma once
 #ifndef THLANG_NODE_H
 #define THLANG_NODE_H
 #include "llvm/IR/Value.h"
@@ -10,8 +9,6 @@
 #include <memory>
 #include <iostream>
 #include <unordered_map>
-using namespace llvm;
-
 #include "TypeSystem.h"
 
 
@@ -33,15 +30,11 @@ class Node{
 };
 
 class ExprAst : public Node {
-public:
-    virtual llvm::Value* codegen(thlang::CodeGenContext& context) override = 0;
-    virtual void unparse() override = 0;
+
 }; //表达式节点的基类
 class StmtAst : public  Node {
-public:
-    virtual llvm::Value* codegen(thlang::CodeGenContext& context) override = 0;
-    virtual void unparse() override = 0;
-};; //常量节点的基类
+
+}; //常量节点的基类
 
 // 块级节点: NBlock
 class NBlock : public Node {
@@ -95,7 +88,7 @@ class BoolAst : public  ExprAst {
         bool value;
         BoolAst(bool value) : value(value){};
         virtual llvm::Value* codegen(thlang::CodeGenContext& context) override ;
-        virtual void unparse();
+        virtual void unparse() override;
 };
 
 // 表达式节点: 标识符Name 一元表达式UnOp  二元表达式BinOp 赋值表达式 Assign 函数调用表达式Call
@@ -113,7 +106,7 @@ class UnOpAst : public ExprAst {
         std::unique_ptr<thlang::Node> expr;
         UnOpAst(std::string op, std::unique_ptr<thlang::Node> expr) : op(op), expr(std::move(expr)) {}
         virtual llvm::Value* codegen(thlang::CodeGenContext& context) override ;
-        virtual void unparse();
+        virtual void unparse() override;
 };
 
 class BinOpAst : public ExprAst {
@@ -129,8 +122,8 @@ class BinOpAst : public ExprAst {
 class AssignAst : public ExprAst {
     public:
         std::unique_ptr<thlang::Node> name; //左值
-        std::unique_ptr<thlang::Node> expr; //右值
-        AssignAst(std::unique_ptr<thlang::Node> name, std::unique_ptr<thlang::Node> expr) : name(std::move(name)), expr(std::move(expr)) {}
+        std::unique_ptr<thlang::Node>& expr; //右值
+        AssignAst(std::unique_ptr<thlang::Node> name, std::unique_ptr<thlang::Node>& expr) : name(std::move(name)), expr(expr) {}
         virtual llvm::Value* codegen(thlang::CodeGenContext& context) override ;
         virtual void unparse();
 };

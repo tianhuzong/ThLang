@@ -44,12 +44,13 @@ public:
     
     llvm::LLVMContext llvmContext;
     llvm::IRBuilder<> builder;
+    thlang::TypeSystem typeSystem;
     std::unique_ptr<llvm::Module> theModule;
     std::unordered_map<std::string, thlang::Symbol> globals;
     std::vector<std::shared_ptr<thlang::Type>> types;
     std::string ObjCode;
     std::string moduleName;
-    CodeGenContext(std::string moduleName = "main"): builder(llvmContext) {
+    CodeGenContext(std::string moduleName = "main"): builder(llvmContext), typeSystem(llvmContext) {
         this->moduleName = llvm::sys::path::filename(moduleName);
         theModule = std::make_unique<llvm::Module>("main", this->llvmContext);
     }
@@ -67,7 +68,7 @@ public:
     }
     
     void setvalue(std::string name, std::shared_ptr<thlang::Type> type, llvm::Value* value) {
-        blocks.back()->locals[name] = value;
+        blocks.back()->locals[name] = std::pair<std::shared_ptr<thlang::Type>, llvm::Value*>(type, value);
     }
     
     llvm::BasicBlock *currentBlock() { 
