@@ -56,6 +56,10 @@
 
 %left TOKEN_PLUS TOKEN_MINUS
 %left TOKEN_MUL TOKEN_DIV TOKEN_MOD
+%precedence UMINUS // 负号
+%precedence UPLUS  // 正号
+%precedence UFACT  // 感叹号
+
 %parse-param {thlang::NModule &root_program}
 %parse-param {thlang::CodeGenContext &context}
 %define parse.error verbose
@@ -99,6 +103,9 @@ expr : NUM {
     | expr TOKEN_DIV expr { $$ = new thlang::BinOpAst("/", std::unique_ptr<thlang::Node>($1), std::unique_ptr<thlang::Node>($3)); }
     | expr TOKEN_PLUS expr { $$ = new thlang::BinOpAst("+", std::unique_ptr<thlang::Node>($1), std::unique_ptr<thlang::Node>($3)); }
     | expr TOKEN_MINUS expr { $$ = new thlang::BinOpAst("-", std::unique_ptr<thlang::Node>($1), std::unique_ptr<thlang::Node>($3)); }
+    | TOKEN_MINUS expr %prec UMINUS { $$ = new thlang::UnOpAst("-", std::unique_ptr<thlang::Node>($2)); }  // 负号
+    | TOKEN_PLUS expr %prec UPLUS { $$ = new thlang::UnOpAst("+", std::unique_ptr<thlang::Node>($2)); }  // 正号
+    | TOKEN_NOT expr %prec UFACT { $$ = new thlang::UnOpAst("!", std::unique_ptr<thlang::Node>($2)); }  // 感叹号
     //| tkid LPAREN call_args RPAREN { $$ = new thlang::CallExprAst(std::unique_ptr<thlang::Node>($1), std::unique_ptr<thlang::ExprList>($3)); }    
 
 op :  TOKEN_EQUAL  { $$ = new std::string("="); }

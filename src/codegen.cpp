@@ -84,7 +84,20 @@ llvm::Value* BoolAst::codegen(thlang::CodeGenContext& context) {
 }
 
 llvm::Value* UnOpAst::codegen(thlang::CodeGenContext& context) {
-    return nullptr;
+    llvm::Value* un_expr = this->expr->codegen(context); //避免发生命名冲突问题
+    if(!un_expr){
+        return nullptr;
+    }
+
+    if(this->op == "-"){
+        return context.builder.CreateSub(ConstantInt::get(Type::getInt32Ty(context.getContext()), 0), un_expr, "subtemp");
+    }
+    else if (this->op == "+"){
+        return un_expr;
+    }
+    else if (this->op == "!"){
+        
+    }
 }
 
 llvm::Value* BinOpAst::codegen(thlang::CodeGenContext& context) {
