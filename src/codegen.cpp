@@ -34,15 +34,22 @@ llvm::Value* NModule::codegen(thlang::CodeGenContext& context){
 }
 
 llvm::Value* NBlock::codegen(thlang::CodeGenContext& context){
-    llvm::Value* last = nullptr;
+    llvm::Value* last;
     for(auto& it : *this->stmts){
+        assert(it);
+        if(!it){
+            LogError("it为空");
+            exit(1);
+        }
+        //auto var = static_cast<thlang::VarStmtAst*>(it.get());
+        //std::cout << "it正常......\n" << typeid(*(it.get())).name() << "\n" ;
         last = it->codegen(context);
     }
     return last; //可能为nullptr
 }
 
 llvm::Value* IntAst::codegen(thlang::CodeGenContext& context){
-	llvm::Value * res = llvm::ConstantInt::get(llvm::Type::getInt64Ty(context.getContext()), value, true);
+	llvm::Value * res = llvm::ConstantInt::get(llvm::Type::getInt32Ty(context.getContext()), value, true);
     return res;
 }
 
@@ -126,6 +133,33 @@ llvm::Value* BinOpAst::codegen(thlang::CodeGenContext& context) {
 }
 
 llvm::Value* AssignAst::codegen(thlang::CodeGenContext& context) {
+    // 获取变量名对应的 NameAst 节点
+    auto nameast = static_cast<thlang::NameAst*>((this->name).get());
+    
+    // 从上下文中获取变量名对应的 LLVM 值
+    llvm::Value* dst = context.getvalue(nameast->name);
+    if (!dst) {
+        // 如果变量未定义，记录错误信息并返回
+        return LogError("未定义的标识符: " + nameast->name);
+    }
+
+    // 生成表达式的 LLVM 值
+    llvm::Value* exp = this->expr->codegen(context);
+    if (!exp) {
+        // 如果表达式生成失败，记录错误信息并返回
+        return LogError("表达式生成失败");
+    }
+
+
+    // 存储赋值
+    context.builder.CreateStore(exp, dst);
+
+    // 返回变量地址
+    return dst;
+}
+
+/*
+llvm::Value* AssignAst::codegen(thlang::CodeGenContext& context) {
     auto nameast = static_cast<thlang::NameAst*>((this->name).get());
     llvm::Value* dst = context.getvalue(nameast->name);
     if( !dst ){
@@ -135,18 +169,24 @@ llvm::Value* AssignAst::codegen(thlang::CodeGenContext& context) {
     context.builder.CreateStore(exp, dst);
     return dst;
 }
-
+*/
 llvm::Value* ExprStmtAst::codegen(thlang::CodeGenContext& context) {
     return this->expr->codegen(context);
 }
 
 llvm::Value* VarStmtAst::codegen(thlang::CodeGenContext& context) {
+    std::cout << "varstmtcodegn\n";
     auto nameast = static_cast<thlang::NameAst*>(this->name.get());
-    llvm::Value* inst = context.builder.CreateAlloca(context.typeSystem.get_llvm_type(this->type), nullptr, nameast->name.c_str());
+    //TODO:llvm::Value* inst = context.builder.CreateAlloca(context.typeSystem.get_llvm_type(this->type), nullptr, nameast->name.c_str());
+    llvm::Value* inst = context.builder.CreateAlloca(llvm::Type::getInt32Ty(context.llvmContext));
     context.setvalue(nameast->name, this->type, inst);
     if( this->init != nullptr ){
-        //thlang::ExprAst exprast = *static_cast<thlang::ExprAst*>(this->init.get());
-        thlang::AssignAst assignment(std::move(std::make_unique<thlang::NameAst>(nameast->name)), this->init);
+        //thlang::ExprAst* exprast = new thlang::ExprAst(*(this->init.get()));
+        auto initExpr = dynamic_cast<thlang::ExprAst*>(this->init.get());
+        if (initExpr == nullptr) {
+            return LogError("初始化表达式类型不匹配");
+        }
+        thlang::AssignAst assignment(std::make_unique<thlang::NameAst>(nameast->name), this->init);
         assignment.codegen(context);
     }
     return inst;
@@ -303,11 +343,51 @@ llvm::Value* WhileStmtAst::codegen(thlang::CodeGenContext& context) {
 }
 
 llvm::Value* ReturnStmtAst::codegen(thlang::CodeGenContext& context) {
-    return nullptr;
+    llvm::Value* returnValue = this->expr->codegen(context);
+    context.builder.CreateRet(returnValue);
+    return returnValue;
 }
 
 llvm::Value* FunctionStmtAst::codegen(thlang::CodeGenContext& context) {
-    return nullptr;
+    std::vector<llvm::Type*> argTypes;
+    if(!this->args->empty()){
+        for (const auto& arg : *this->args) {
+            //TODO:argTypes.push_back(context.typeSystem.get_llvm_type(arg->type));
+            argTypes.push_back(llvm::Type::getInt32Ty(context.getContext()));
+        }
+    }
+    //TODO:
+    //llvm::Type* retType = context.typeSystem.get_llvm_type(this->type);
+    llvm::Type* retType = llvm::Type::getInt32Ty(context.getContext());
+
+    llvm::FunctionType* functionType = llvm::FunctionType::get(retType, argTypes, false);
+    thlang::NameAst* function_name = static_cast<thlang::NameAst*>(this->name.get());
+    llvm::Function* function = llvm::Function::Create(functionType, llvm::GlobalValue::ExternalLinkage, function_name->name.c_str(), context.theModule.get());
+
+    if (!this->is_extern) {
+        llvm::BasicBlock* entryBlock = llvm::BasicBlock::Create(context.llvmContext, "entry", function, nullptr);
+        context.pushBlock(entryBlock);
+        // 声明函数参数
+        auto origin_arg = this->args->begin();
+        unsigned argNo = 0;
+        for (auto &ir_arg_it : function->args()) {
+            thlang::NameAst* arg_name = static_cast<thlang::NameAst*>((*origin_arg)->name.get());
+            thlang::Type arg_type = (*origin_arg)->type;
+            llvm::Type* arg_type_llvm = context.typeSystem.get_llvm_type(arg_type);
+            ir_arg_it.setName(arg_name->name);
+            //TODO:llvm::Value* argAlloc = context.builder.CreateAlloca(arg_type, nullptr, ir_arg_it.getName().str() + ".addr");
+            llvm::Value* argAlloc = context.builder.CreateAlloca(llvm::Type::getInt32Ty(context.getContext()), nullptr, ir_arg_it.getName().str() + ".addr");
+            context.builder.CreateStore(&ir_arg_it, argAlloc);
+            context.setvalue(arg_name->name, arg_type, argAlloc);
+            origin_arg++;
+            argNo++;
+        }
+
+        // 生成函数体代码
+        this->block->codegen(context);
+    }
+
+    return function;
 }
 
 } // namespace thlang

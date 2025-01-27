@@ -6,12 +6,12 @@
     #include <cstdio>
     #include <string>
     #include "node.h"
-    #include "TypeSystem.h"
+    #include "codegen.h"
     extern int yylineno;
     int yylex();
     int findMapping(const char *type);
     void addMapping(const char *type, int token);
-    void yyerror(thlang::NModule &root_program, const char *s) { printf("Error:  %s,lineno: %d\n", s, yylineno);exit(1); }
+    void yyerror(thlang::NModule &root_program, thlang::CodeGenContext& context, const char *s) { printf("Error:  %s,lineno: %d\n", s, yylineno);exit(1); }
     int nums;
     
     
@@ -24,6 +24,7 @@
     thlang::Node *node;
     thlang::NBlock *block;
     thlang::ExprAst *stmt;
+    thlang::Type *type;
     std::string *values;
 }
 
@@ -55,9 +56,9 @@
 
 %left TOKEN_PLUS TOKEN_MINUS
 %left TOKEN_MUL TOKEN_DIV TOKEN_MOD
-
 %parse-param {thlang::NModule &root_program}
-
+%parse-param {thlang::CodeGenContext &context}
+%define parse.error verbose
 %start program
 %%
 
@@ -69,36 +70,19 @@ program : stmts {
 block : LBRACE stmts RBRACE { $$ = $2; }
     | LBRACE RBRACE { $$ = new thlang::NBlock(); }
 
-stmts : stmt {
-    auto ast = new thlang::NBlock();
-    ast->stmts->push_back(std::unique_ptr<thlang::Node>($1));
-    $$ = ast;
-}
-| stmts TOKEN_SEMICOLON stmt {
-    std::cout << "语句同行分号\n";
-    $1->stmts->push_back((std::unique_ptr<thlang::Node>($3)));
-    $$ = $1;
-}
-| stmts TOKEN_SEMICOLON {
-    std::cout << "语句sss分号结尾\n";
-    $$ = $1;
-}
-| stmts TOKEN_NEWLINE {
-    std::cout << "语句\n";
-    $$ = $1;
-}
-| stmts TOKEN_NEWLINE stmt {
-    std::cout << "语句\n";
-    $1->stmts->push_back(std::unique_ptr<thlang::Node>($3));
-    $$ = $1;
-}
-;
+stmts : stmts stmt { $1->stmts->push_back(std::unique_ptr<thlang::Node>($2)); $$ = $1; }
+    | stmts TOKEN_SEMICOLON { $$ = $1; }
+    | stmts TOKEN_SEMICOLON stmt { $1->stmts->push_back(std::unique_ptr<thlang::Node>($3)); $$ = $1; }
+    | stmt { auto ast = new thlang::NBlock(); ast->stmts->push_back(std::unique_ptr<thlang::Node>($1)); $$ = ast; }
+
+
 
 stmt : if_stmt {$$ = $1;}
     | while_stmt {$$ = $1;}
     | for_stmt {$$ = $1;}
     | var_decl {$$ = $1;}
     | func_decl {$$ = $1;}
+    | TOKEN_RETURN expr { $$ = new thlang::ReturnStmtAst(std::unique_ptr<thlang::Node>($2)); }
     | expr { $$ = new thlang::ExprStmtAst(std::move(std::unique_ptr<thlang::Node>($1))); }
     
 expr : NUM {
@@ -130,7 +114,7 @@ op :  TOKEN_EQUAL  { $$ = new std::string("="); }
     | TOKEN_AND    { $$ = new std::string("&&"); }
     | TOKEN_OR     { $$ = new std::string("||"); }
 
-assign : tkid TOKEN_EQUAL expr {auto expr = std::unique_ptr<thlang::Node>($3); $$ = new thlang::AssignAst(std::unique_ptr<thlang::Node>($1), expr); }
+assign : tkid TOKEN_EQUAL expr {auto expr = std::unique_ptr<thlang::Node>($3); $$ = new thlang::AssignAst(std::unique_ptr<thlang::Node>($1), std::move(std::unique_ptr<thlang::Node>($3))); }
 
 for_stmt : TOKEN_FOR LPAREN expr TOKEN_SEMICOLON expr TOKEN_SEMICOLON expr RPAREN block { $$ = new thlang::ForStmtAst(std::unique_ptr<thlang::Node>($3), std::unique_ptr<thlang::Node>($5), std::unique_ptr<thlang::Node>($7), std::unique_ptr<thlang::Node>($9)); }
 
@@ -144,12 +128,14 @@ if_stmt : TOKEN_IF LPAREN expr RPAREN block {$$ = new thlang::IfStmtAst(std::uni
 		$$ = new thlang::IfStmtAst(std::unique_ptr<thlang::Node>($3), std::unique_ptr<thlang::Node>($5), std::unique_ptr<thlang::Node>(blk)); 
 	}
 
-var_decl : TOKEN_INT tkid { $$ = new thlang::VarStmtAst(std::make_shared<thlang::Type>("整数"), std::unique_ptr<thlang::Node>($2)); }
-    | TOKEN_INT tkid TOKEN_EQUAL  expr { $$ = new thlang::VarStmtAst(std::make_shared<thlang::Type>("整数"), std::unique_ptr<thlang::Node>($2), std::unique_ptr<thlang::Node>($4)); }
+var_decl : TOKEN_INT tkid {auto type = context.typeSystem.get_type("整数型");  $$ = new thlang::VarStmtAst(type, std::unique_ptr<thlang::Node>($2)); std::cout << "第一个:---" << &type << "---\n"; }
+    | TOKEN_INT tkid TOKEN_EQUAL  expr {auto type = context.typeSystem.get_type("整数型"); $$ = new thlang::VarStmtAst(type, std::unique_ptr<thlang::Node>($2), std::unique_ptr<thlang::Node>($4)); std::cout << "第二个:---" << &type << "---" << type.get_type_name() << "---\n";}
 
-func_decl : TOKEN_INT tkid LPAREN  RPAREN block { /*$$ = new thlang::FunctionStmtAst($1, std::unique_ptr<thlang::Node>($2), std::unique_ptr<VarList>($4), std::unique_ptr<thlang::Node>($6)); */}
+func_decl : TOKEN_INT tkid LPAREN  RPAREN block { $$ = new thlang::FunctionStmtAst(context.typeSystem.get_type("整数型"), std::unique_ptr<thlang::Node>($2), std::make_unique<thlang::VarList>(), std::unique_ptr<thlang::Node>($5)); }
 
 tkid : TOKEN_ID { $$ = new thlang::NameAst(*$1); delete $1; }
+
+
 
 %%
 

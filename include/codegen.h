@@ -28,7 +28,7 @@
 
 namespace thlang{
 
-using Symbol = std::pair<std::shared_ptr<thlang::Type>, llvm::Value*>;
+using Symbol = std::pair<thlang::Type, llvm::Value*>;
 
 class CodeGenBlock{
 public:
@@ -47,7 +47,7 @@ public:
     thlang::TypeSystem typeSystem;
     std::unique_ptr<llvm::Module> theModule;
     std::unordered_map<std::string, thlang::Symbol> globals;
-    std::vector<std::shared_ptr<thlang::Type>> types;
+    std::vector<thlang::Type> types;
     std::string ObjCode;
     std::string moduleName;
     CodeGenContext(std::string moduleName = "main"): builder(llvmContext), typeSystem(llvmContext) {
@@ -67,8 +67,8 @@ public:
         return nullptr;
     }
     
-    void setvalue(std::string name, std::shared_ptr<thlang::Type> type, llvm::Value* value) {
-        blocks.back()->locals[name] = std::pair<std::shared_ptr<thlang::Type>, llvm::Value*>(type, value);
+    void setvalue(std::string name, thlang::Type type, llvm::Value* value) {
+        blocks.back()->locals[name] = std::pair<thlang::Type, llvm::Value*>(type, value);
     }
     
     llvm::BasicBlock *currentBlock() { 

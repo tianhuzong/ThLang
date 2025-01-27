@@ -3,14 +3,18 @@
 #include "codegen.h"
 using namespace std;
 thlang::NModule root_module;
-extern int yyparse(thlang::NModule &root_program);
+extern int yyparse(thlang::NModule &root_program, thlang::CodeGenContext& context);
+
 
 
 int main(int argc, char **argv){
-    yyparse(root_module);
+    freopen("f.txt", "r", stdin);
+    thlang::CodeGenContext context;
+    context.typeSystem.add_type("整数型", thlang::Type("整数型"));
+    yyparse(root_module, context);
     auto block_node = root_module.block.get();
     std::cout << block_node << "\n";
-    thlang::CodeGenContext context;
+    
     root_module.codegen(context);
     context.theModule->print(llvm::outs(), nullptr);
     return 0;

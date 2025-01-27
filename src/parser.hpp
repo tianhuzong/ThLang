@@ -103,9 +103,10 @@ union YYSTYPE
     thlang::Node *node;
     thlang::NBlock *block;
     thlang::ExprAst *stmt;
+    thlang::Type *type;
     std::string *values;
 
-#line 109 "parser.hpp"
+#line 110 "parser.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -116,6 +117,6 @@ typedef union YYSTYPE YYSTYPE;
 
 extern YYSTYPE yylval;
 
-int yyparse (thlang::NModule &root_program);
+int yyparse (thlang::NModule &root_program, thlang::CodeGenContext &context);
 
 #endif /* !YY_YY_PARSER_HPP_INCLUDED  */
