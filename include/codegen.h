@@ -45,14 +45,14 @@ public:
     llvm::LLVMContext llvmContext;
     llvm::IRBuilder<> builder;
     thlang::TypeSystem typeSystem;
-    std::unique_ptr<llvm::Module> theModule;
+    std::shared_ptr<llvm::Module> theModule;
     std::unordered_map<std::string, thlang::Symbol> globals;
     std::vector<thlang::Type> types;
     std::string ObjCode;
     std::string moduleName;
     CodeGenContext(std::string moduleName = "main"): builder(llvmContext), typeSystem(llvmContext) {
         this->moduleName = llvm::sys::path::filename(moduleName);
-        theModule = std::make_unique<llvm::Module>("main", this->llvmContext);
+        theModule = std::make_shared<llvm::Module>("main", this->llvmContext);
     }
     void codegen(NModule& root);
     std::unordered_map<std::string, thlang::Symbol> getlocals() { 

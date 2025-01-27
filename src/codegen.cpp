@@ -176,7 +176,7 @@ llvm::Value* ExprStmtAst::codegen(thlang::CodeGenContext& context) {
 
 llvm::Value* VarStmtAst::codegen(thlang::CodeGenContext& context) {
     std::cout << "varstmtcodegn\n";
-    auto nameast = static_cast<thlang::NameAst*>(this->name.get());
+    auto nameast = std::static_pointer_cast<thlang::NameAst>(this->name);
     //TODO:llvm::Value* inst = context.builder.CreateAlloca(context.typeSystem.get_llvm_type(this->type), nullptr, nameast->name.c_str());
     llvm::Value* inst = context.builder.CreateAlloca(llvm::Type::getInt32Ty(context.llvmContext));
     context.setvalue(nameast->name, this->type, inst);
@@ -186,7 +186,7 @@ llvm::Value* VarStmtAst::codegen(thlang::CodeGenContext& context) {
         if (initExpr == nullptr) {
             return LogError("初始化表达式类型不匹配");
         }
-        thlang::AssignAst assignment(std::make_unique<thlang::NameAst>(nameast->name), this->init);
+        thlang::AssignAst assignment((nameast), this->init);
         assignment.codegen(context);
     }
     return inst;

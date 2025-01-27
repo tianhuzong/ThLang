@@ -64,16 +64,16 @@
 
 program : stmts {
     root_program  = thlang::NModule();
-    root_program.block = std::unique_ptr<thlang::Node>($1);
+    root_program.block = std::shared_ptr<thlang::Node>($1);
 } ;
 
 block : LBRACE stmts RBRACE { $$ = $2; }
     | LBRACE RBRACE { $$ = new thlang::NBlock(); }
 
-stmts : stmts stmt { $1->stmts->push_back(std::unique_ptr<thlang::Node>($2)); $$ = $1; }
+stmts : stmts stmt { $1->stmts->push_back(std::shared_ptr<thlang::Node>($2)); $$ = $1; }
     | stmts TOKEN_SEMICOLON { $$ = $1; }
-    | stmts TOKEN_SEMICOLON stmt { $1->stmts->push_back(std::unique_ptr<thlang::Node>($3)); $$ = $1; }
-    | stmt { auto ast = new thlang::NBlock(); ast->stmts->push_back(std::unique_ptr<thlang::Node>($1)); $$ = ast; }
+    | stmts TOKEN_SEMICOLON stmt { $1->stmts->push_back(std::shared_ptr<thlang::Node>($3)); $$ = $1; }
+    | stmt { auto ast = new thlang::NBlock(); ast->stmts->push_back(std::shared_ptr<thlang::Node>($1)); $$ = ast; }
 
 
 
@@ -82,24 +82,24 @@ stmt : if_stmt {$$ = $1;}
     | for_stmt {$$ = $1;}
     | var_decl {$$ = $1;}
     | func_decl {$$ = $1;}
-    | TOKEN_RETURN expr { $$ = new thlang::ReturnStmtAst(std::unique_ptr<thlang::Node>($2)); }
-    | expr { $$ = new thlang::ExprStmtAst(std::move(std::unique_ptr<thlang::Node>($1))); }
+    | TOKEN_RETURN expr { $$ = new thlang::ReturnStmtAst(std::shared_ptr<thlang::Node>($2)); }
+    | expr { $$ = new thlang::ExprStmtAst((std::shared_ptr<thlang::Node>($1))); }
     
 expr : NUM {
-    $$ = new thlang::IntAst(std::atol($1->c_str()));
+    $$ = new thlang::IntAst(std::atoi($1->c_str()), context.typeSystem.get_type("整数型"));
     delete $1;
     }
     | TOKEN_STRING { $$ = new thlang::StringAst(*$1); delete $1; } //TODO
     | assign { $$ = $1; }
     | tkid { $$ = $1; }
     | LPAREN expr RPAREN {$$ = $2; }
-    | expr op expr { $$ = new thlang::BinOpAst(*$2, std::unique_ptr<thlang::Node>($1), std::unique_ptr<thlang::Node>($3)); delete $2; }
-    | expr TOKEN_MOD expr { $$ = new thlang::BinOpAst("%", std::unique_ptr<thlang::Node>($1), std::unique_ptr<thlang::Node>($3)); }
-    | expr TOKEN_MUL expr { $$ = new thlang::BinOpAst("*", std::unique_ptr<thlang::Node>($1), std::unique_ptr<thlang::Node>($3)); }
-    | expr TOKEN_DIV expr { $$ = new thlang::BinOpAst("/", std::unique_ptr<thlang::Node>($1), std::unique_ptr<thlang::Node>($3)); }
-    | expr TOKEN_PLUS expr { $$ = new thlang::BinOpAst("+", std::unique_ptr<thlang::Node>($1), std::unique_ptr<thlang::Node>($3)); }
-    | expr TOKEN_MINUS expr { $$ = new thlang::BinOpAst("-", std::unique_ptr<thlang::Node>($1), std::unique_ptr<thlang::Node>($3)); }
-    //| tkid LPAREN call_args RPAREN { $$ = new thlang::CallExprAst(std::unique_ptr<thlang::Node>($1), std::unique_ptr<thlang::ExprList>($3)); }    
+    | expr op expr { $$ = new thlang::BinOpAst(*$2, std::shared_ptr<thlang::Node>($1), std::shared_ptr<thlang::Node>($3)); delete $2; }
+    | expr TOKEN_MOD expr { $$ = new thlang::BinOpAst("%", std::shared_ptr<thlang::Node>($1), std::shared_ptr<thlang::Node>($3)); }
+    | expr TOKEN_MUL expr { $$ = new thlang::BinOpAst("*", std::shared_ptr<thlang::Node>($1), std::shared_ptr<thlang::Node>($3)); }
+    | expr TOKEN_DIV expr { $$ = new thlang::BinOpAst("/", std::shared_ptr<thlang::Node>($1), std::shared_ptr<thlang::Node>($3)); }
+    | expr TOKEN_PLUS expr { $$ = new thlang::BinOpAst("+", std::shared_ptr<thlang::Node>($1), std::shared_ptr<thlang::Node>($3)); }
+    | expr TOKEN_MINUS expr { $$ = new thlang::BinOpAst("-", std::shared_ptr<thlang::Node>($1), std::shared_ptr<thlang::Node>($3)); }
+    //| tkid LPAREN call_args RPAREN { $$ = new thlang::CallExprAst(std::shared_ptr<thlang::Node>($1), std::shared_ptr<thlang::ExprList>($3)); }    
 
 op :  TOKEN_EQUAL  { $$ = new std::string("="); }
     | TOKEN_CEQ    { $$ = new std::string("=="); }
@@ -114,24 +114,24 @@ op :  TOKEN_EQUAL  { $$ = new std::string("="); }
     | TOKEN_AND    { $$ = new std::string("&&"); }
     | TOKEN_OR     { $$ = new std::string("||"); }
 
-assign : tkid TOKEN_EQUAL expr {auto expr = std::unique_ptr<thlang::Node>($3); $$ = new thlang::AssignAst(std::unique_ptr<thlang::Node>($1), std::move(std::unique_ptr<thlang::Node>($3))); }
+assign : tkid TOKEN_EQUAL expr {$$ = new thlang::AssignAst(std::shared_ptr<thlang::Node>($1), (std::shared_ptr<thlang::Node>($3))); }
 
-for_stmt : TOKEN_FOR LPAREN expr TOKEN_SEMICOLON expr TOKEN_SEMICOLON expr RPAREN block { $$ = new thlang::ForStmtAst(std::unique_ptr<thlang::Node>($3), std::unique_ptr<thlang::Node>($5), std::unique_ptr<thlang::Node>($7), std::unique_ptr<thlang::Node>($9)); }
+for_stmt : TOKEN_FOR LPAREN expr TOKEN_SEMICOLON expr TOKEN_SEMICOLON expr RPAREN block { $$ = new thlang::ForStmtAst(std::shared_ptr<thlang::Node>($3), std::shared_ptr<thlang::Node>($5), std::shared_ptr<thlang::Node>($7), std::shared_ptr<thlang::Node>($9)); }
 
-while_stmt : TOKEN_WHILE LPAREN expr RPAREN block  { $$ = new thlang::WhileStmtAst(std::unique_ptr<thlang::Node>($3), std::unique_ptr<thlang::Node>($5)); }
+while_stmt : TOKEN_WHILE LPAREN expr RPAREN block  { $$ = new thlang::WhileStmtAst(std::shared_ptr<thlang::Node>($3), std::shared_ptr<thlang::Node>($5)); }
 
-if_stmt : TOKEN_IF LPAREN expr RPAREN block {$$ = new thlang::IfStmtAst(std::unique_ptr<thlang::Node>($3), std::unique_ptr<thlang::Node>($5)); }
-    | TOKEN_IF LPAREN expr RPAREN block TOKEN_ELSE block {$$ = new thlang::IfStmtAst(std::unique_ptr<thlang::Node>($3), std::unique_ptr<thlang::Node>($5), std::unique_ptr<thlang::Node>($7)); }
+if_stmt : TOKEN_IF LPAREN expr RPAREN block {$$ = new thlang::IfStmtAst(std::shared_ptr<thlang::Node>($3), std::shared_ptr<thlang::Node>($5)); }
+    | TOKEN_IF LPAREN expr RPAREN block TOKEN_ELSE block {$$ = new thlang::IfStmtAst(std::shared_ptr<thlang::Node>($3), std::shared_ptr<thlang::Node>($5), std::shared_ptr<thlang::Node>($7)); }
     | TOKEN_IF LPAREN expr RPAREN block TOKEN_ELSE if_stmt { 
 		auto blk = new thlang::NBlock(); 
-		blk->stmts->push_back(std::unique_ptr<thlang::Node>($7)); 
-		$$ = new thlang::IfStmtAst(std::unique_ptr<thlang::Node>($3), std::unique_ptr<thlang::Node>($5), std::unique_ptr<thlang::Node>(blk)); 
+		blk->stmts->push_back(std::shared_ptr<thlang::Node>($7)); 
+		$$ = new thlang::IfStmtAst(std::shared_ptr<thlang::Node>($3), std::shared_ptr<thlang::Node>($5), std::shared_ptr<thlang::Node>(blk)); 
 	}
 
-var_decl : TOKEN_INT tkid {auto type = context.typeSystem.get_type("整数型");  $$ = new thlang::VarStmtAst(type, std::unique_ptr<thlang::Node>($2)); std::cout << "第一个:---" << &type << "---\n"; }
-    | TOKEN_INT tkid TOKEN_EQUAL  expr {auto type = context.typeSystem.get_type("整数型"); $$ = new thlang::VarStmtAst(type, std::unique_ptr<thlang::Node>($2), std::unique_ptr<thlang::Node>($4)); std::cout << "第二个:---" << &type << "---" << type.get_type_name() << "---\n";}
+var_decl : TOKEN_INT tkid {auto type = context.typeSystem.get_type("整数型");  $$ = new thlang::VarStmtAst(type, std::shared_ptr<thlang::Node>($2)); std::cout << "第一个:---" << &type << "---\n"; }
+    | TOKEN_INT tkid TOKEN_EQUAL  expr {auto type = context.typeSystem.get_type("整数型"); $$ = new thlang::VarStmtAst(type, std::shared_ptr<thlang::Node>($2), std::shared_ptr<thlang::Node>($4)); std::cout << "第二个:---" << &type << "---" << type.get_type_name() << "---\n";}
 
-func_decl : TOKEN_INT tkid LPAREN  RPAREN block { $$ = new thlang::FunctionStmtAst(context.typeSystem.get_type("整数型"), std::unique_ptr<thlang::Node>($2), std::make_unique<thlang::VarList>(), std::unique_ptr<thlang::Node>($5)); }
+func_decl : TOKEN_INT tkid LPAREN  RPAREN block { $$ = new thlang::FunctionStmtAst(context.typeSystem.get_type("整数型"), std::shared_ptr<thlang::Node>($2), std::make_shared<thlang::VarList>(), std::shared_ptr<thlang::Node>($5)); }
 
 tkid : TOKEN_ID { $$ = new thlang::NameAst(*$1); delete $1; }
 
