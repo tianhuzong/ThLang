@@ -1706,7 +1706,7 @@ yyreduce:
 
   case 39:
 #line 117 "parser.y"
-                               {auto expr = std::unique_ptr<thlang::Node>((yyvsp[0].node)); (yyval.node) = new thlang::AssignAst(std::unique_ptr<thlang::Node>((yyvsp[-2].node)), std::move(std::unique_ptr<thlang::Node>((yyvsp[0].node)))); }
+                               { (yyval.node) = new thlang::AssignAst(std::unique_ptr<thlang::Node>((yyvsp[-2].node)), std::move(std::unique_ptr<thlang::Node>((yyvsp[0].node)))); }
 #line 1711 "parser.cpp"
     break;
 

@@ -122,8 +122,8 @@ class BinOpAst : public ExprAst {
 class AssignAst : public ExprAst {
     public:
         std::unique_ptr<thlang::Node> name; //左值
-        std::unique_ptr<thlang::Node>& expr; //右值
-        AssignAst(std::unique_ptr<thlang::Node> name, std::unique_ptr<thlang::Node>& expr) : name(std::move(name)), expr((expr)) {}
+        std::unique_ptr<thlang::Node> expr; //右值
+        AssignAst(std::unique_ptr<thlang::Node> name, std::unique_ptr<thlang::Node> expr) : name(std::move(name)), expr(std::move(expr)) {}
         virtual llvm::Value* codegen(thlang::CodeGenContext& context) override ;
         virtual void unparse();
 };

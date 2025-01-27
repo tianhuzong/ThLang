@@ -186,7 +186,7 @@ llvm::Value* VarStmtAst::codegen(thlang::CodeGenContext& context) {
         if (initExpr == nullptr) {
             return LogError("初始化表达式类型不匹配");
         }
-        thlang::AssignAst assignment(std::make_unique<thlang::NameAst>(nameast->name), this->init);
+        thlang::AssignAst assignment(std::make_unique<thlang::NameAst>(nameast->name), std::move(this->init));
         assignment.codegen(context);
     }
     return inst;

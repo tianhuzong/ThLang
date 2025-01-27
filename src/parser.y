@@ -114,7 +114,7 @@ op :  TOKEN_EQUAL  { $$ = new std::string("="); }
     | TOKEN_AND    { $$ = new std::string("&&"); }
     | TOKEN_OR     { $$ = new std::string("||"); }
 
-assign : tkid TOKEN_EQUAL expr {auto expr = std::unique_ptr<thlang::Node>($3); $$ = new thlang::AssignAst(std::unique_ptr<thlang::Node>($1), std::move(std::unique_ptr<thlang::Node>($3))); }
+assign : tkid TOKEN_EQUAL expr { $$ = new thlang::AssignAst(std::unique_ptr<thlang::Node>($1), std::move(std::unique_ptr<thlang::Node>($3))); }
 
 for_stmt : TOKEN_FOR LPAREN expr TOKEN_SEMICOLON expr TOKEN_SEMICOLON expr RPAREN block { $$ = new thlang::ForStmtAst(std::unique_ptr<thlang::Node>($3), std::unique_ptr<thlang::Node>($5), std::unique_ptr<thlang::Node>($7), std::unique_ptr<thlang::Node>($9)); }
 
