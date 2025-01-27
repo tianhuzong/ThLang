@@ -123,7 +123,7 @@ class AssignAst : public ExprAst {
     public:
         std::unique_ptr<thlang::Node> name; //左值
         std::unique_ptr<thlang::Node>& expr; //右值
-        AssignAst(std::unique_ptr<thlang::Node> name, std::unique_ptr<thlang::Node>& expr) : name(std::move(name)), expr(expr) {}
+        AssignAst(std::unique_ptr<thlang::Node> name, std::unique_ptr<thlang::Node>& expr) : name(std::move(name)), expr((expr)) {}
         virtual llvm::Value* codegen(thlang::CodeGenContext& context) override ;
         virtual void unparse();
 };
@@ -140,10 +140,10 @@ public:
 
 class VarStmtAst : public StmtAst {
 public:
-    std::shared_ptr<thlang::Type> type;
+    thlang::Type type;
     std::unique_ptr<thlang::Node> name;
     std::unique_ptr<thlang::Node> init;
-    VarStmtAst(std::shared_ptr<thlang::Type> type, std::unique_ptr<thlang::Node> name, std::unique_ptr<thlang::Node> init = nullptr) : type(type), name(std::move(name)), init(std::move(init)) {};
+    VarStmtAst(thlang::Type type, std::unique_ptr<thlang::Node> name, std::unique_ptr<thlang::Node> init = nullptr) : type(type), name(std::move(name)), init(std::move(init)) {};
     virtual llvm::Value* codegen(CodeGenContext& context) override; 
     virtual void unparse() override;
 };
@@ -188,12 +188,12 @@ public:
 
 class FunctionStmtAst : public StmtAst {
 public:
-    std::shared_ptr<thlang::Type> type;
+    thlang::Type type;
     std::unique_ptr<thlang::Node> name;
     std::unique_ptr<VarList> args = std::make_unique<VarList>();
     std::unique_ptr<thlang::Node> block;
     bool is_extern;
-    FunctionStmtAst(std::shared_ptr<thlang::Type> type, std::unique_ptr<thlang::Node> name, std::unique_ptr<VarList> args, std::unique_ptr<thlang::Node> block, bool is_extern = false) : type(type), name(std::move(name)), args(std::move(args)), block(std::move(block)), is_extern(is_extern) {};
+    FunctionStmtAst(thlang::Type type, std::unique_ptr<thlang::Node> name, std::unique_ptr<VarList> args, std::unique_ptr<thlang::Node> block, bool is_extern = false) : type(type), name(std::move(name)), args(std::move(args)), block(std::move(block)), is_extern(is_extern) {};
     virtual llvm::Value* codegen(CodeGenContext& context) override; 
     virtual void unparse() override;
 };
