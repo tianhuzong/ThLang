@@ -23,3 +23,7 @@ TestResults.xml
 
 #CMake Cache
 build/*
+
+#core dumped
+core.*
+vgcore.*
