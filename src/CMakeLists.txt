@@ -1,5 +1,5 @@
 find_package(LLVM REQUIRED CONFIG)
-find_library(ReflexLib REQUIRED)
+#find_library(ReflexLib REQUIRED)
 SET(SOURCES main.cpp codegen.cpp lex.yy.cpp parser.cpp unparse.cpp TypeSystem.cpp)
 add_executable(compiler  ${SOURCES})
 target_include_directories(compiler PUBLIC ${PROJECT_SOURCE_DIR}/include)
