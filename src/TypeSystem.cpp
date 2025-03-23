@@ -6,6 +6,42 @@ std::string& Type::get_type_name(){
     return type_name;
 }
 
+llvm::Type* Type::get_llvm_type(llvm::LLVMContext& context){
+    // 整数
+    if(type_name == "整数型"){
+        return llvm::Type::getInt32Ty(context);
+    }
+    else if(type_name == "长整数型"){
+        return llvm::Type::getInt64Ty(context);
+    }
+    else if(type_name == "短整数型"){
+        return llvm::Type::getInt16Ty(context);
+    }
+    // 小数
+    else if(type_name == "小数型"){
+        return llvm::Type::getFloatTy(context);
+    }
+    else if(type_name == "双精度小数型"){
+        return llvm::Type::getDoubleTy(context);
+    }
+    else if(type_name == "半精度小数型"){
+        return llvm::Type::getHalfTy(context);
+    }
+
+}
+
+llvm::Type* FunctionType::get_llvm_type(llvm::LLVMContext& context){
+    return nullptr;
+}
+
+llvm::Type* ClassType::get_llvm_type(llvm::LLVMContext& context){
+    return nullptr;
+}
+
+llvm::Type* StructType::get_llvm_type(llvm::LLVMContext& context){
+    return nullptr;
+}
+
 std::string& FunctionType::get_type_name(){
     return type_name;
 }
@@ -39,7 +75,7 @@ thlang::Type TypeSystem::get_type(std::string type_name){
 }
 
 llvm::Type* TypeSystem::get_llvm_type(thlang::Type type){
-    return nullptr;
+    return type.get_llvm_type(this->llvmContext);
 }
 
 llvm::Type* TypeSystem::get_llvm_type(std::string type_name){

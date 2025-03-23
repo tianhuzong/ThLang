@@ -56,9 +56,9 @@
 
 %left TOKEN_PLUS TOKEN_MINUS
 %left TOKEN_MUL TOKEN_DIV TOKEN_MOD
-%precedence UMINUS // 负号
-%precedence UPLUS  // 正号
-%precedence UFACT  // 感叹号
+%right UMINUS // 负号
+%right UPLUS  // 正号
+%right UFACT  // 感叹号
 
 %parse-param {thlang::NModule &root_program}
 %parse-param {thlang::CodeGenContext &context}

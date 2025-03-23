@@ -87,7 +87,10 @@ extern int yydebug;
     TOKEN_NEWLINE = 293,
     TOKEN_ID = 294,
     NUM = 295,
-    TOKEN_STRING = 296
+    TOKEN_STRING = 296,
+    UMINUS = 297,
+    UPLUS = 298,
+    UFACT = 299
   };
 #endif
 
@@ -106,7 +109,7 @@ union YYSTYPE
     thlang::Type *type;
     std::string *values;
 
-#line 110 "parser.hpp"
+#line 113 "parser.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;

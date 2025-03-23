@@ -74,7 +74,7 @@ llvm::Value* NameAst::codegen(thlang::CodeGenContext& context){
         LogError("Name " + this->name + " is not defined");
     }
     
-    return context.builder.CreateLoad(value, false, "");
+    return context.builder.CreateLoad(value, false);
 }
 
 
@@ -90,7 +90,7 @@ llvm::Value* UnOpAst::codegen(thlang::CodeGenContext& context) {
     }
 
     if(this->op == "-"){
-        return context.builder.CreateSub(ConstantInt::get(Type::getInt32Ty(context.getContext()), 0), un_expr, "subtemp");
+        return context.builder.CreateSub(llvm::ConstantInt::get(llvm::Type::getInt32Ty(context.getContext()), 0), un_expr, "subtemp");
     }
     else if (this->op == "+"){
         return un_expr;
@@ -205,58 +205,60 @@ llvm::Value* VarStmtAst::codegen(thlang::CodeGenContext& context) {
     return inst;
 }
 
-llvm::Value* IfStmtAst::codegen(thlang::CodeGenContext& context) {
-    llvm::Value* cond = this->condition->codegen(context);//条件
-    if( !cond ){
-        return nullptr;
-    }
-    cond = context.builder.CreateIntCast(cond, llvm::Type::getInt1Ty(context.llvmContext), true);
-    cond = context.builder.CreateICmpNE(cond, llvm::ConstantInt::get(llvm::Type::getInt1Ty(context.llvmContext), 0, true));
-    llvm::Function* theFunction = context.builder.GetInsertBlock()->getParent();      // the function where if statement is in
-
-    llvm::BasicBlock *thenBB = llvm::BasicBlock::Create(context.llvmContext, "then", theFunction);
-    llvm::BasicBlock *falseBB = llvm::BasicBlock::Create(context.llvmContext, "else");
-    llvm::BasicBlock *mergeBB = llvm::BasicBlock::Create(context.llvmContext, "ifcont");
-
-    if( this->elseStmt ){ // 判断是否存在else语句
-        context.builder.CreateCondBr(cond, thenBB, falseBB);
-    } else{
-        context.builder.CreateCondBr(cond, thenBB, mergeBB);
+llvm::Value* IfStmtAst::codegen(CodeGenContext& context) {
+    // 生成条件表达式的值
+    llvm::Value* condValue = condition->codegen(context);
+    if (!condValue) {
+        return nullptr; // 生成条件表达式失败
     }
 
+    // 确保条件为i1类型，如果不是则转换为i1
+    if (condValue->getType() != context.builder.getInt1Ty()) {
+        condValue = context.builder.CreateICmpNE(
+            condValue,
+            llvm::ConstantInt::get(condValue->getType(), 0, /*isSigned=*/true),
+            "ifcond"
+        );
+    }
+
+    llvm::Function* currentFunction = context.builder.GetInsertBlock()->getParent();
+
+    // 创建基本块：then, else, merge
+    llvm::BasicBlock* thenBB = llvm::BasicBlock::Create(context.llvmContext, "then", currentFunction);
+    llvm::BasicBlock* elseBB = llvm::BasicBlock::Create(context.llvmContext, "else");
+    llvm::BasicBlock* mergeBB = llvm::BasicBlock::Create(context.llvmContext, "ifcont");
+
+    // 生成条件分支指令
+    context.builder.CreateCondBr(condValue, thenBB, elseBB);
+
+    // 生成then块的代码
     context.builder.SetInsertPoint(thenBB);
-
-    context.pushBlock(thenBB);
-
-    this->thenStmt->codegen(context);
-
-    context.popBlock();
-
-    thenBB = context.builder.GetInsertBlock();
-
-    if( thenBB->getTerminator() == nullptr ){        // 如果块没有终结指令 就添加一个跳转
+    if (!thenStmt->codegen(context)) {
+        return nullptr; // 生成then语句失败
+    }
+    // 如果当前块没有终止指令，跳转到merge块
+    if (!context.builder.GetInsertBlock()->getTerminator()) {
         context.builder.CreateBr(mergeBB);
     }
 
-    if( this->elseStmt ){
-        theFunction->getBasicBlockList().push_back(falseBB);    
-        context.builder.SetInsertPoint(falseBB);            
-        context.pushBlock(thenBB);
-        this->elseStmt->codegen(context);
-        if( mergeBB->getTerminator() == nullptr ){        // 如果块没有终结指令 就添加一个跳转
-            context.builder.CreateBr(mergeBB);
+    // 生成else块的代码
+    currentFunction->getBasicBlockList().push_back(elseBB);
+    context.builder.SetInsertPoint(elseBB);
+    if (elseStmt) {
+        if (!elseStmt->codegen(context)) {
+            return nullptr; // 生成else语句失败
         }
-        context.popBlock();
-
+    }
+    // 如果当前块没有终止指令，跳转到merge块
+    if (!context.builder.GetInsertBlock()->getTerminator()) {
+        context.builder.CreateBr(mergeBB);
     }
 
-    theFunction->getBasicBlockList().push_back(mergeBB);
-    context.builder.SetInsertPoint(mergeBB);        // 设置插入点
-    if( mergeBB->getTerminator() == nullptr ){        // 如果块没有终结指令 就添加一个跳转
-        context.builder.CreateRetVoid();
-    }
+    // 将merge块添加到函数并设置插入点
+    currentFunction->getBasicBlockList().push_back(mergeBB);
+    context.builder.SetInsertPoint(mergeBB);
 
-    return nullptr;
+    return nullptr; // if语句没有返回值
 }
 
 llvm::Value* ForStmtAst::codegen(thlang::CodeGenContext& context) {
