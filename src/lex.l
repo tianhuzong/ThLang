@@ -44,6 +44,8 @@
 ">>"                                            { return TOKEN(TOKEN_SHR); }
 ("&&"|"且")                                     { return TOKEN(TOKEN_AND); }
 ("||"|"或")                                     { return TOKEN(TOKEN_OR); }
+"如果"                                          { return TOKEN(TOKEN_IF); }
+"否则"                                          { return TOKEN(TOKEN_ELSE); }
 "."                                             { return TOKEN(TOKEN_DOT); }
 "!"                                             { return TOKEN(TOKEN_NOT); }
 (\"[^"\n]*\"|\'[^"\n]*\')                       { SAVE_TOKEN; return TOKEN_STRING; }

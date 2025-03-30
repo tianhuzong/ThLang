@@ -14,12 +14,15 @@
 
 namespace thlang{
 
+class CodeGenContext;
+
 class Type{
 public:
     Type(){};
     Type(const std::string& type_name) : type_name(type_name) {};
     std::string type_name; //类型名
     virtual std::string& get_type_name();
+    virtual llvm::Type* get_llvm_type(llvm::LLVMContext& context);
 };
 
 class FunctionType : public Type{
@@ -28,6 +31,7 @@ public:
     FunctionType();
     std::string type_name = "函数"; 
     virtual std::string& get_type_name() override;
+    virtual llvm::Type* get_llvm_type(llvm::LLVMContext& context) override;
 };
 
 class ClassType : public Type{
@@ -40,6 +44,7 @@ public:
     virtual std::string& get_type_name() override;
     void add_method(std::string method_name);
     void add_member(thlang::Type type, std::string member_name);
+    virtual llvm::Type* get_llvm_type(llvm::LLVMContext& context) override;
 };
 
 class StructType : public Type{
@@ -50,6 +55,7 @@ public:
     std::string type_name; //结构体的名字
     virtual std::string& get_type_name();
     void add_member(thlang::Type type, std::string member_name);
+    virtual llvm::Type* get_llvm_type(llvm::LLVMContext& context) override;
 };
 
 class TypeSystem{
