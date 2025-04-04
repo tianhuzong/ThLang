@@ -11,6 +11,8 @@
 #include <memory>
 #include <unordered_map>
 
+// TODO: 使用命名空间
+
 namespace thlang {
 
 class CodeGenContext;
@@ -23,17 +25,13 @@ class Node {
 public:
   virtual ~Node() = default;
   virtual llvm::Value *codegen(thlang::CodeGenContext &context) = 0;
-  virtual void unparse() = 0;
+  virtual void unparse() = 0; // TODO: 设置为纯虚函数，子类必须实现
 };
 
-class ExprAst : public Node {
-public:
-  std::unique_ptr<thlang::Type> type;
-  virtual std::unique_ptr<thlang::Type> get_type() { return std::move(type); }
-};
+class ExprAst : public Node {}; // 表达式节点的基类
+class StmtAst : public Node {}; // 常量节点的基类
 
-class StmtAst : public Node {};
-
+// 块级节点: NBlock
 class NBlock : public Node {
 public:
   std::unique_ptr<std::vector<std::unique_ptr<thlang::Node>>> stmts =
@@ -43,6 +41,7 @@ public:
   virtual void unparse();
 };
 
+// 模块节点: NModule
 class NModule : public Node {
 public:
   std::unique_ptr<thlang::Node> block;
@@ -51,12 +50,12 @@ public:
   virtual void unparse();
 };
 
+// 常量节点: 整数Int 小数Float  字符串String 布尔值Bool
 class IntAst : public ExprAst {
 public:
   long long value;
-  IntAst(long long value) : value(value) {
-    type = std::make_unique<thlang::Type>("整数型");
-  };
+  thlang::Type type = thlang::Type("整数型");
+  IntAst(long long value) : value(value) {};
   virtual llvm::Value *codegen(thlang::CodeGenContext &context) override;
   virtual void unparse();
 };
@@ -64,9 +63,7 @@ public:
 class FloatAst : public ExprAst {
 public:
   long double value;
-  FloatAst(long double value) : value(value) {
-    type = std::make_unique<thlang::Type>("小数型");
-  };
+  FloatAst(long double value) : value(value) {};
   virtual llvm::Value *codegen(thlang::CodeGenContext &context) override;
   virtual void unparse();
 };
@@ -74,9 +71,7 @@ public:
 class StringAst : public ExprAst {
 public:
   std::string value;
-  StringAst(std::string value) : value(value) {
-    type = std::make_unique<thlang::Type>("字符串");
-  };
+  StringAst(std::string value) : value(value) {};
   virtual llvm::Value *codegen(thlang::CodeGenContext &context) override;
   virtual void unparse();
 };
@@ -84,17 +79,17 @@ public:
 class BoolAst : public ExprAst {
 public:
   bool value;
-  BoolAst(bool value) : value(value) {
-    type = std::make_unique<thlang::Type>("布尔型");
-  };
+  BoolAst(bool value) : value(value) {};
   virtual llvm::Value *codegen(thlang::CodeGenContext &context) override;
   virtual void unparse() override;
 };
 
+// 表达式节点: 标识符Name 一元表达式UnOp  二元表达式BinOp 赋值表达式 Assign
+// 函数调用表达式Call
 class NameAst : public ExprAst {
 public:
   std::string name;
-  NameAst(std::string name) : name(name){};
+  NameAst(std::string name) : name(name) {};
   virtual llvm::Value *codegen(thlang::CodeGenContext &context) override;
   virtual void unparse();
 };
@@ -123,8 +118,8 @@ public:
 
 class AssignAst : public ExprAst {
 public:
-  std::unique_ptr<thlang::Node> name;
-  std::unique_ptr<thlang::Node> expr;
+  std::unique_ptr<thlang::Node> name; // 左值
+  std::unique_ptr<thlang::Node> expr; // 右值
   AssignAst(std::unique_ptr<thlang::Node> name,
             std::unique_ptr<thlang::Node> expr)
       : name(std::move(name)), expr(std::move(expr)) {}
@@ -132,23 +127,25 @@ public:
   virtual void unparse();
 };
 
+// 语句节点 : 表达式语句 赋值语句 if语句 for语句 while语句 函数定义语句
+// 返回值语句 类定义语句
+
 class ExprStmtAst : public StmtAst {
 public:
   std::unique_ptr<thlang::Node> expr;
-  ExprStmtAst(std::unique_ptr<thlang::Node> expr) : expr(std::move(expr)){};
+  ExprStmtAst(std::unique_ptr<thlang::Node> expr) : expr(std::move(expr)) {};
   virtual llvm::Value *codegen(CodeGenContext &context) override;
   virtual void unparse() override;
 };
 
 class VarStmtAst : public StmtAst {
 public:
-  std::unique_ptr<thlang::Type> type;
+  thlang::Type type;
   std::unique_ptr<thlang::Node> name;
   std::unique_ptr<thlang::Node> init;
-  VarStmtAst(std::unique_ptr<thlang::Type> type,
-             std::unique_ptr<thlang::Node> name,
+  VarStmtAst(thlang::Type type, std::unique_ptr<thlang::Node> name,
              std::unique_ptr<thlang::Node> init = nullptr)
-      : type(std::move(type)), name(std::move(name)), init(std::move(init)){};
+      : type(type), name(std::move(name)), init(std::move(init)) {};
   virtual llvm::Value *codegen(CodeGenContext &context) override;
   virtual void unparse() override;
 };
@@ -162,7 +159,7 @@ public:
             std::unique_ptr<thlang::Node> thenStmt,
             std::unique_ptr<thlang::Node> elseStmt = nullptr)
       : condition(std::move(condition)), thenStmt(std::move(thenStmt)),
-        elseStmt(std::move(elseStmt)){};
+        elseStmt(std::move(elseStmt)) {};
   virtual llvm::Value *codegen(CodeGenContext &context) override;
   virtual void unparse() override;
 };
@@ -178,7 +175,7 @@ public:
              std::unique_ptr<thlang::Node> increment,
              std::unique_ptr<thlang::Node> body)
       : init(std::move(init)), condition(std::move(condition)),
-        increment(std::move(increment)), body(std::move(body)){};
+        increment(std::move(increment)), body(std::move(body)) {};
   virtual llvm::Value *codegen(CodeGenContext &context) override;
   virtual void unparse() override;
 };
@@ -189,7 +186,7 @@ public:
   std::unique_ptr<thlang::Node> body;
   WhileStmtAst(std::unique_ptr<thlang::Node> condition,
                std::unique_ptr<thlang::Node> body)
-      : condition(std::move(condition)), body(std::move(body)){};
+      : condition(std::move(condition)), body(std::move(body)) {};
   virtual llvm::Value *codegen(CodeGenContext &context) override;
   virtual void unparse() override;
 };
@@ -197,24 +194,23 @@ public:
 class ReturnStmtAst : public StmtAst {
 public:
   std::unique_ptr<thlang::Node> expr;
-  ReturnStmtAst(std::unique_ptr<thlang::Node> expr) : expr(std::move(expr)){};
+  ReturnStmtAst(std::unique_ptr<thlang::Node> expr) : expr(std::move(expr)) {};
   virtual llvm::Value *codegen(CodeGenContext &context) override;
   virtual void unparse() override;
 };
 
 class FunctionStmtAst : public StmtAst {
 public:
-  std::unique_ptr<thlang::Type> type;
+  thlang::Type type;
   std::unique_ptr<thlang::Node> name;
   std::unique_ptr<VarList> args = std::make_unique<VarList>();
   std::unique_ptr<thlang::Node> block;
   bool is_extern;
-  FunctionStmtAst(std::unique_ptr<thlang::Type> type,
-                  std::unique_ptr<thlang::Node> name,
+  FunctionStmtAst(thlang::Type type, std::unique_ptr<thlang::Node> name,
                   std::unique_ptr<VarList> args,
                   std::unique_ptr<thlang::Node> block, bool is_extern = false)
-      : type(std::move(type)), name(std::move(name)), args(std::move(args)),
-        block(std::move(block)), is_extern(is_extern){};
+      : type(type), name(std::move(name)), args(std::move(args)),
+        block(std::move(block)), is_extern(is_extern) {};
   virtual llvm::Value *codegen(CodeGenContext &context) override;
   virtual void unparse() override;
 };
@@ -222,5 +218,67 @@ public:
 class ClassStmtAst : public StmtAst {};
 
 } // namespace thlang
+
+/*
+class Node {
+public:
+    //Node() = default;
+        virtual ~Node() = default;
+        virtual Value* codegen(thlang::CodeGenContext& context) = 0;
+};
+
+class ExprAst : public Node{};
+class StmtAst : public Node{};
+class ConstantAst : public Node{};
+
+
+class IntAst : public ConstantAst {
+    public:
+        long long value;
+        IntAst(long long value) : value(value){};
+        virtual Value* codegen(thlang::CodeGenContext& context) ;
+};
+
+class FloatAst : public ConstantAst {
+    public:
+        long double value;
+        FloatAst(long double value) : value(value){};
+        virtual llvm::Value* codegen(thlang::CodeGenContext& context) override ;
+};
+
+class StringAst : public ConstantAst {
+    public:
+        std::string value;
+        StringAst(std::string value) : value(value){};
+        virtual llvm::Value* codegen(thlang::CodeGenContext& context) override ;
+};
+
+
+class NameAst : public ExprAst{
+    public:
+        std::string name;
+        NameAst(std::string name) : name(name){};
+        virtual Value* codegen(thlang::CodeGenContext& context) ;
+};
+
+class BlockAst_temp{
+    public:
+
+};
+
+
+
+class Type_{
+    Type_();
+};
+class Value {
+public:
+    Value() = default;
+    Value(const char* a) : str_(a) {std::cout << "Value(const char* a) is " << a
+<< std::endl; } static Value fromString(const char* a) { return Value(a); }
+private:
+    std::string str_;
+};
+*/
 
 #endif // THLANG_NODE_H
