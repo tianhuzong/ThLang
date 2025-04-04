@@ -9,14 +9,15 @@
 #include <llvm/ADT/SmallVector.h>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/IR/LegacyPassManager.h>
-#include <llvm/MC/TargetRegistry.h> // 新增：TargetRegistry支持
+#include <llvm/MC/TargetRegistry.h>
 #include <llvm/Support/FileSystem.h>
 #include <llvm/Support/Path.h>
 #include <llvm/Support/TargetSelect.h>
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Target/TargetOptions.h>
-#include <llvm/TargetParser/Host.h> // 新增：getDefaultTargetTriple支持
+#include <llvm/TargetParser/Host.h>
+#include <memory>
 #include <optional>
 #include <unordered_map>
 #include <vector>
@@ -27,94 +28,125 @@
 
 namespace thlang {
 
-using _Symbol = std::pair<thlang::Type, llvm::Value *>;
+struct Symbol {
+  std::unique_ptr<thlang::Type> type;
+  llvm::Value *value;
+
+  Symbol(std::unique_ptr<thlang::Type> t, llvm::Value *v)
+      : type(std::move(t)), value(v) {}
+
+  // 移动构造函数
+  Symbol(Symbol &&other) noexcept
+      : type(std::move(other.type)), value(other.value) {}
+
+  // 禁用拷贝
+  Symbol(const Symbol &) = delete;
+  Symbol &operator=(const Symbol &) = delete;
+};
 
 class CodeGenBlock {
 public:
-  llvm::BasicBlock *block;
-  llvm::Value *returnValue;
-  std::unordered_map<std::string, thlang::_Symbol> locals;
+  llvm::BasicBlock *block = nullptr;
+  llvm::Value *returnValue = nullptr;
+  std::unordered_map<std::string, Symbol> locals;
   std::unordered_map<std::string, bool> isFuncArg;
+
+  CodeGenBlock() = default;
+
+  // 移动构造函数
+  CodeGenBlock(CodeGenBlock &&other) noexcept
+      : block(other.block), returnValue(other.returnValue),
+        locals(std::move(other.locals)), isFuncArg(std::move(other.isFuncArg)) {
+    other.block = nullptr;
+    other.returnValue = nullptr;
+  }
+
+  // 禁用拷贝
+  CodeGenBlock(const CodeGenBlock &) = delete;
+  CodeGenBlock &operator=(const CodeGenBlock &) = delete;
 };
 
 class CodeGenContext {
-  std::vector<CodeGenBlock *> blocks;
+  std::vector<std::unique_ptr<CodeGenBlock>> blocks;
 
 public:
   llvm::LLVMContext llvmContext;
   llvm::IRBuilder<> builder;
   thlang::TypeSystem typeSystem;
-  thlang::Sema sema; // 新增：语义分析模块
+  thlang::Sema sema;
   std::unique_ptr<llvm::Module> theModule;
-  std::unordered_map<std::string, thlang::_Symbol> globals;
-  std::vector<thlang::Type> types;
+  std::unordered_map<std::string, Symbol> globals;
+  std::vector<std::unique_ptr<thlang::Type>> types;
   std::string ObjCode;
   std::string moduleName;
 
   CodeGenContext(std::string moduleName = "main")
-      : builder(llvmContext), typeSystem(llvmContext),
-        sema(typeSystem) { // 初始化 Sema
+      : builder(llvmContext), typeSystem(llvmContext), sema(typeSystem) {
     this->moduleName = llvm::sys::path::filename(moduleName).str();
     theModule = std::make_unique<llvm::Module>("main", this->llvmContext);
   }
 
   void codegen(NModule &root);
 
-  std::unordered_map<std::string, thlang::_Symbol> getlocals() {
+  const std::unordered_map<std::string, Symbol> &getlocals() const {
     return blocks.back()->locals;
   }
 
-  llvm::Value *getvalue(std::string name) {
-    for (auto it : blocks) {
-      if (it->locals.find(name) != it->locals.end()) {
-        return it->locals[name].second;
+  llvm::Value *getvalue(const std::string &name) {
+    for (auto it = blocks.rbegin(); it != blocks.rend(); ++it) {
+      auto found = (*it)->locals.find(name);
+      if (found != (*it)->locals.end()) {
+        return found->second.value;
       }
     }
     return nullptr;
   }
 
-  thlang::Type getvalueType(std::string name) {
-    for (auto it : blocks) {
-      if (it->locals.find(name) != it->locals.end()) {
-        return it->locals[name].first;
+  std::unique_ptr<thlang::Type> getvalueType(const std::string &name) {
+    for (auto it = blocks.rbegin(); it != blocks.rend(); ++it) {
+      auto found = (*it)->locals.find(name);
+      if (found != (*it)->locals.end()) {
+        return std::make_unique<thlang::Type>(*found->second.type);
       }
     }
-    return thlang::Type();
+    return nullptr;
   }
 
-  void setvalue(std::string name, thlang::Type type, llvm::Value *value) {
-    blocks.back()->locals[name] =
-        std::pair<thlang::Type, llvm::Value *>(type, value);
+  void setvalue(std::string name, std::unique_ptr<thlang::Type> type,
+                llvm::Value *value) {
+    blocks.back()->locals.emplace(
+        std::piecewise_construct, std::forward_as_tuple(std::move(name)),
+        std::forward_as_tuple(std::move(type), value));
   }
 
-  llvm::BasicBlock *currentBlock() { return blocks.back()->block; }
+  llvm::BasicBlock *currentBlock() {
+    return blocks.empty() ? nullptr : blocks.back()->block;
+  }
 
   void pushBlock(llvm::BasicBlock *block) {
-    blocks.push_back(new CodeGenBlock());
-    blocks.back()->block = block;
-    this->builder.SetInsertPoint(block);
+    auto newBlock = std::make_unique<CodeGenBlock>();
+    newBlock->block = block;
+    blocks.push_back(std::move(newBlock));
+    builder.SetInsertPoint(block);
   }
 
   void popBlock() {
-    CodeGenBlock *top = blocks.back();
-    blocks.pop_back();
-    delete top;
+    if (!blocks.empty()) {
+      blocks.pop_back();
+    }
   }
 
   llvm::LLVMContext &getContext() { return llvmContext; }
 
   void objgen() {
-    // 验证模块
     bool haserror = llvm::verifyModule(*theModule, &llvm::errs());
     if (haserror) {
       return;
     }
 
-    // 获取目标三元组
     auto targetTriple = llvm::sys::getDefaultTargetTriple();
-    this->theModule->setTargetTriple(targetTriple);
+    theModule->setTargetTriple(targetTriple);
 
-    // 查找目标
     std::string error;
     auto Target = llvm::TargetRegistry::lookupTarget(targetTriple, error);
     if (!Target) {
@@ -122,7 +154,6 @@ public:
       return;
     }
 
-    // 配置目标机器
     auto CPU = "generic";
     auto features = "";
     llvm::TargetOptions opt;
@@ -130,25 +161,20 @@ public:
     auto theTargetMachine =
         Target->createTargetMachine(targetTriple, CPU, features, opt, RM);
 
-    // 设置模块数据布局
-    this->theModule->setDataLayout(theTargetMachine->createDataLayout());
+    theModule->setDataLayout(theTargetMachine->createDataLayout());
 
-    // 创建输出文件
     std::error_code EC;
     llvm::raw_fd_ostream dest(moduleName + ".o", EC);
 
-    // 配置PassManager
     llvm::legacy::PassManager pass;
     auto fileType = llvm::CodeGenFileType::ObjectFile;
 
-    // 添加文件生成Pass
     if (theTargetMachine->addPassesToEmitFile(pass, dest, nullptr, fileType)) {
       llvm::errs() << "theTargetMachine can't emit a file of this type";
       return;
     }
 
-    // 运行Pass并生成目标文件
-    pass.run(*this->theModule.get());
+    pass.run(*theModule);
     dest.flush();
   }
 };
