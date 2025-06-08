@@ -108,8 +108,10 @@ union YYSTYPE
     thlang::ExprAst *stmt;
     thlang::Type *type;
     std::string *values;
+    thlang::VarList* varvec; //用于函数的参数列表
+    thlang::ExprList* exprvec;
 
-#line 113 "parser.hpp"
+#line 115 "parser.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;

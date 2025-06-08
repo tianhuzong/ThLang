@@ -26,6 +26,8 @@
     thlang::ExprAst *stmt;
     thlang::Type *type;
     std::string *values;
+    thlang::VarList* varvec; //用于函数的参数列表
+    thlang::ExprList* exprvec;
 }
 
 
@@ -53,6 +55,9 @@
 %type<node> expr assign tkid
 %type<block> block stmts
 %type<str> op
+%type<type> types
+%type<varvec> func_args // 函数参数列表
+%type <exprvec>  call_args // 函数调用传递参数
 
 %left TOKEN_PLUS TOKEN_MINUS
 %left TOKEN_MUL TOKEN_DIV TOKEN_MOD
@@ -106,7 +111,7 @@ expr : NUM {
     | TOKEN_MINUS expr %prec UMINUS { $$ = new thlang::UnOpAst("-", std::unique_ptr<thlang::Node>($2)); }  // 负号
     | TOKEN_PLUS expr %prec UPLUS { $$ = new thlang::UnOpAst("+", std::unique_ptr<thlang::Node>($2)); }  // 正号
     | TOKEN_NOT expr %prec UFACT { $$ = new thlang::UnOpAst("!", std::unique_ptr<thlang::Node>($2)); }  // 感叹号
-    //| tkid LPAREN call_args RPAREN { $$ = new thlang::CallExprAst(std::unique_ptr<thlang::Node>($1), std::unique_ptr<thlang::ExprList>($3)); }    
+    | tkid LPAREN call_args RPAREN { $$ = new thlang::CallExprAst(std::unique_ptr<thlang::Node>($1), std::unique_ptr<thlang::ExprList>($3)); }    
 
 op :  TOKEN_EQUAL  { $$ = new std::string("="); }
     | TOKEN_CEQ    { $$ = new std::string("=="); }
@@ -135,14 +140,25 @@ if_stmt : TOKEN_IF LPAREN expr RPAREN block {$$ = new thlang::IfStmtAst(std::uni
 		$$ = new thlang::IfStmtAst(std::unique_ptr<thlang::Node>($3), std::unique_ptr<thlang::Node>($5), std::unique_ptr<thlang::Node>(blk)); 
 	}
 
-var_decl : TOKEN_INT tkid {auto type = context.typeSystem.get_type("整数型");  $$ = new thlang::VarStmtAst(type, std::unique_ptr<thlang::Node>($2)); }
-    | TOKEN_INT tkid TOKEN_EQUAL  expr {auto type = context.typeSystem.get_type("整数型"); $$ = new thlang::VarStmtAst(type, std::unique_ptr<thlang::Node>($2), std::unique_ptr<thlang::Node>($4)); }
+var_decl : types tkid {auto type = context.typeSystem.get_type("整数型");  $$ = new thlang::VarStmtAst(type, std::unique_ptr<thlang::Node>($2)); }
+    | types tkid TOKEN_EQUAL  expr {auto type = context.typeSystem.get_type("整数型"); $$ = new thlang::VarStmtAst(type, std::unique_ptr<thlang::Node>($2), std::unique_ptr<thlang::Node>($4)); }
 
-func_decl : TOKEN_INT tkid LPAREN  RPAREN block { $$ = new thlang::FunctionStmtAst(context.typeSystem.get_type("整数型"), std::unique_ptr<thlang::Node>($2), std::make_unique<thlang::VarList>(), std::unique_ptr<thlang::Node>($5)); }
+
+func_args : /*没有参数*/ { $$ = new thlang::VarList(); }
+    | var_decl { $$ = new thlang::VarList(); $$->push_back(std::unique_ptr<VarStmtAst>($<var_decl>1)); }
+	| func_args TOKEN_COMMA var_decl { $1->push_back(std::unique_ptr<VarStmtAst>($<var_decl>3)); }
+	;
+
+func_decl : types tkid LPAREN func_args RPAREN block { $$ = new thlang::FunctionStmtAst($1, std::unique_ptr<thlang::Node>($2), std::unique_ptr<thlang::VarList>($4), std::unique_ptr<thlang::Node>($5)); }
+
+call_args : /*无参数列表*/ { $$ = new thlang::ExprList(); }
+    | expr { $$ = new thlang::ExprList(); $$->push_back(std::unique_ptr<ExprAst>($1)); }
+    | call_args TOKEN_COMMA expr { $1->push_back(std::unique_ptr<ExprAst>($<expr>3)); }
 
 tkid : TOKEN_ID { $$ = new thlang::NameAst(*$1); delete $1; }
 
-
+types : TOKEN_INT {$$ = context.typeSystem.get_type("整数型");}
+    | tkid {$$ = context.typeSystem.get_type(*$1); delete $1;}
 
 %%
 

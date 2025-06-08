@@ -1,3 +1,6 @@
+整数型 加法(){
+    返回 0;
+}
 整数型 main(){
  整数型 ff = 0
 整数型 aa = 1
@@ -147,6 +150,7 @@
 整数型 cInFOWLxotuoPiRAsg = 0
 如果(lcvrNoiMxzNLCuoWRtKIhCvm == 9){ff = 1}
 否则{ff = 0}
-返回 0;
+整数型 返值 = 加法();
+返回 返值;
 }
 
