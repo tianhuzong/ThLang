@@ -135,8 +135,8 @@ if_stmt : TOKEN_IF LPAREN expr RPAREN block {$$ = new thlang::IfStmtAst(std::uni
 		$$ = new thlang::IfStmtAst(std::unique_ptr<thlang::Node>($3), std::unique_ptr<thlang::Node>($5), std::unique_ptr<thlang::Node>(blk)); 
 	}
 
-var_decl : TOKEN_INT tkid {auto type = context.typeSystem.get_type("整数型");  $$ = new thlang::VarStmtAst(type, std::unique_ptr<thlang::Node>($2)); std::cout << "第一个:---" << &type << "---\n"; }
-    | TOKEN_INT tkid TOKEN_EQUAL  expr {auto type = context.typeSystem.get_type("整数型"); $$ = new thlang::VarStmtAst(type, std::unique_ptr<thlang::Node>($2), std::unique_ptr<thlang::Node>($4)); std::cout << "第二个:---" << &type << "---" << type.get_type_name() << "---\n";}
+var_decl : TOKEN_INT tkid {auto type = context.typeSystem.get_type("整数型");  $$ = new thlang::VarStmtAst(type, std::unique_ptr<thlang::Node>($2)); }
+    | TOKEN_INT tkid TOKEN_EQUAL  expr {auto type = context.typeSystem.get_type("整数型"); $$ = new thlang::VarStmtAst(type, std::unique_ptr<thlang::Node>($2), std::unique_ptr<thlang::Node>($4)); }
 
 func_decl : TOKEN_INT tkid LPAREN  RPAREN block { $$ = new thlang::FunctionStmtAst(context.typeSystem.get_type("整数型"), std::unique_ptr<thlang::Node>($2), std::make_unique<thlang::VarList>(), std::unique_ptr<thlang::Node>($5)); }
 

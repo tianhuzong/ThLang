@@ -1,4 +1,3 @@
-// 实现一个类型系统
 #ifndef THLANG_TYPESYSTEM_H
 #define THLANG_TYPESYSTEM_H
 
@@ -12,64 +11,80 @@
 #include <unordered_map>
 #include <vector>
 
-namespace thlang{
+namespace thlang {
 
 class CodeGenContext;
 
-class Type{
+class Type {
 public:
-    Type(){};
-    Type(const std::string& type_name) : type_name(type_name) {};
-    std::string type_name; //类型名
-    virtual std::string& get_type_name();
+    Type() : implicit_copy(false),  size(0) {};  // 新增默认属性
+    Type(const std::string& type_name, bool implicit_copy = false,  size_t size = 0) 
+        : type_name(type_name), implicit_copy(implicit_copy),  size(size) {};
+
+    static Type* create(const std::string& name, bool implicit_copy, size_t size) ;
+
+    std::string type_name;
+    bool implicit_copy;
+    size_t size;           // 类型大小
+
+    virtual std::string& get_type_name() ;
     virtual llvm::Type* get_llvm_type(llvm::LLVMContext& context);
+
+    // 判断是否需要生成隐式复制逻辑
+    virtual bool should_implicit_copy() const ;
+
+    static constexpr size_t MAX_IMPLICIT_COPY_SIZE = 16; 
 };
 
-class FunctionType : public Type{
-// TODO:考虑将参数和返回值的类型加入函数类型
+class FunctionType : public Type {
 public:
-    FunctionType();
-    std::string type_name = "函数"; 
-    virtual std::string& get_type_name() override;
+    Type* return_type;
+    std::vector<Type*> arg_types;
+    FunctionType(Type* return_type, std::vector<Type*> arg_types) : Type("函数", false, 0), return_type(return_type), arg_types(std::move(arg_types)){} ; // 函数类型不参与隐式复制
     virtual llvm::Type* get_llvm_type(llvm::LLVMContext& context) override;
 };
 
-class ClassType : public Type{
+class ClassType : public Type {
 private:
-    std::vector<std::string> methods; //类的方法
-    std::vector<std::pair<thlang::Type, std::string>> members; //类的成员变量pair<类型, 字段名>
+    std::vector<std::string> methods;
+    std::vector<std::pair<Type*, std::string>> members; 
 public:
-    ClassType(std::string type_name) : type_name(type_name){};
-    std::string type_name; //类的名字
-    virtual std::string& get_type_name() override;
-    void add_method(std::string method_name);
-    void add_member(thlang::Type type, std::string member_name);
+    ClassType(std::string type_name, bool implicit_copy = false) 
+        : Type(type_name, implicit_copy,  0) {}; // 类默认不隐式复制
+
+    void add_method(const std::string& method_name) ;
+    void add_member(Type* type, const std::string& member_name) ;
     virtual llvm::Type* get_llvm_type(llvm::LLVMContext& context) override;
 };
 
-class StructType : public Type{
+class StructType : public Type {
 private:
-    std::vector<std::pair<thlang::Type, std::string>> members; //结构体的成员变量pair<类型, 字段名>
+    std::vector<std::pair<Type*, std::string>> members; // 改为指针
 public:
-    StructType(std::string type_name) : type_name(type_name){};
-    std::string type_name; //结构体的名字
-    virtual std::string& get_type_name();
-    void add_member(thlang::Type type, std::string member_name);
+    StructType(std::string type_name, bool implicit_copy = false) 
+        : Type(type_name, implicit_copy,  0) {}; // 结构体可标记隐式复制
+
+    void add_member(Type* type, const std::string& member_name) ;
     virtual llvm::Type* get_llvm_type(llvm::LLVMContext& context) override;
 };
 
-class TypeSystem{
+class TypeSystem {
 private:
     llvm::LLVMContext& llvmContext;
-    std::unordered_map<std::string, thlang::Type> type_map;
+    std::unordered_map<std::string, Type*> type_map; // 改为指针存储
+    static Type* empty_type_ptr;
 public:
-    TypeSystem(llvm::LLVMContext& llvmContext) : llvmContext(llvmContext){};
-    void add_type(std::string type_name, thlang::Type type);
-    thlang::Type get_type(std::string type_name);
-    llvm::Type* get_llvm_type(thlang::Type type);
-    llvm::Type* get_llvm_type(std::string type_name);
+    TypeSystem(llvm::LLVMContext& llvmContext) ;
+
+    void add_type(const std::string& type_name, Type* type) ;
+
+    Type* get_type(const std::string& type_name) ;
+
+    llvm::Type* get_llvm_type(Type* type) ;
+
+    llvm::Type* get_llvm_type(const std::string& type_name) ;
 };
 
-} //namespace thlang
+} // namespace thlang
 
-#endif //THLANG_TYPESYSTEM_H
+#endif // THLANG_TYPESYSTEM_H

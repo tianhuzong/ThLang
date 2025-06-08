@@ -28,116 +28,116 @@
 
 namespace thlang {
 
-using _Symbol = std::pair<thlang::Type, llvm::Value *>;
+using _Symbol = std::pair<thlang::Type*, llvm::Value *>;
 
 class CodeGenBlock {
 public:
-  llvm::BasicBlock *block;
-  llvm::Value *returnValue;
-  std::unordered_map<std::string, thlang::_Symbol> locals;
-  std::unordered_map<std::string, bool> isFuncArg;
+    llvm::BasicBlock *block;
+    llvm::Value *returnValue;
+    std::unordered_map<std::string, thlang::_Symbol> locals;
+    std::unordered_map<std::string, bool> isFuncArg;
 };
 
 class CodeGenContext {
-  std::vector<CodeGenBlock *> blocks;
+    std::vector<CodeGenBlock *> blocks;
 
 public:
-  llvm::LLVMContext llvmContext;
-  llvm::IRBuilder<> builder;
-  thlang::TypeSystem typeSystem;
-  std::unique_ptr<llvm::Module> theModule;
-  std::unordered_map<std::string, thlang::_Symbol> globals;
-  std::vector<thlang::Type> types;
-  std::string ObjCode;
-  std::string moduleName;
-  CodeGenContext(std::string moduleName = "main")
-      : builder(llvmContext), typeSystem(llvmContext) {
-    this->moduleName = llvm::sys::path::filename(moduleName);
-    theModule = std::make_unique<llvm::Module>("main", this->llvmContext);
-  }
-  void codegen(NModule &root);
-  std::unordered_map<std::string, thlang::_Symbol> getlocals() {
-    return blocks.back()->locals;
-  }
-  llvm::Value *getvalue(std::string name) {
-    for (auto it : blocks) {
-      if (it->locals.find(name) != it->locals.end()) {
-        return it->locals[name].second;
-      }
+    llvm::LLVMContext llvmContext;
+    llvm::IRBuilder<> builder;
+    thlang::TypeSystem typeSystem;
+    std::unique_ptr<llvm::Module> theModule;
+    std::unordered_map<std::string, thlang::_Symbol> globals;
+    std::vector<thlang::Type> types;
+    std::string ObjCode;
+    std::string moduleName;
+    CodeGenContext(std::string moduleName = "main")
+            : builder(llvmContext), typeSystem(llvmContext) {
+        this->moduleName = llvm::sys::path::filename(moduleName);
+        theModule = std::make_unique<llvm::Module>("main", this->llvmContext);
     }
-    return nullptr;
-  }
+    void codegen(NModule &root);
+    std::unordered_map<std::string, thlang::_Symbol> getlocals() {
+        return blocks.back()->locals;
+    }
+    llvm::Value *getvalue(std::string name) {
+        for (auto it : blocks) {
+            if (it->locals.find(name) != it->locals.end()) {
+                return it->locals[name].second;
+            }
+        }
+        return nullptr;
+    }
 
-  void setvalue(std::string name, thlang::Type type, llvm::Value *value) {
-    blocks.back()->locals[name] =
-        std::pair<thlang::Type, llvm::Value *>(type, value);
-  }
+    void setvalue(std::string name, thlang::Type* type, llvm::Value *value) {
+        blocks.back()->locals[name] =
+                std::pair<thlang::Type*, llvm::Value *>(type, value);
+    }
 
-  llvm::BasicBlock *currentBlock() { return blocks.back()->block; }
-  void pushBlock(llvm::BasicBlock *block) {
-    blocks.push_back(new CodeGenBlock());
-    blocks.back()->block = block;
-    this->builder.SetInsertPoint(block);
-  }
-  void popBlock() {
-    CodeGenBlock *top = blocks.back();
-    blocks.pop_back();
-    delete top;
-  } /*
-   void setCurrentReturnValue(llvm::Value *value) {
-       blocks.back()->returnValue = value;
-       builder.CreateStore(value, returnAlloca);
-   }
-   void setReturnValueAlloca(llvm::AllocaInst* value) {
-       returnAlloca = value;
-   }
-   llvm::Value* getCurrentReturnValue() {
-       return blocks.back()->returnValue;
-   */
-  llvm::LLVMContext &getContext() { return llvmContext; }
-  void objgen() { /*
-     bool haserror = llvm::verifyModule(*theModule, &llvm::errs());
-     if (haserror) {
-       return;
+    llvm::BasicBlock *currentBlock() { return blocks.back()->block; }
+    void pushBlock(llvm::BasicBlock *block) {
+        blocks.push_back(new CodeGenBlock());
+        blocks.back()->block = block;
+        this->builder.SetInsertPoint(block);
+    }
+    void popBlock() {
+        CodeGenBlock *top = blocks.back();
+        blocks.pop_back();
+        delete top;
+    } /*
+    void setCurrentReturnValue(llvm::Value *value) {
+        blocks.back()->returnValue = value;
+        builder.CreateStore(value, returnAlloca);
+    }
+     void setReturnValueAlloca(llvm::AllocaInst* value) {
+             returnAlloca = value;
      }
-     auto targetTriple = llvm::sys::getDefaultTargetTriple();
-     this->theModule->setTargetTriple(targetTriple);
+     llvm::Value* getCurrentReturnValue() {
+        return blocks.back()->returnValue;
+     */
+    llvm::LLVMContext &getContext() { return llvmContext; }
+    void objgen() { /*
+         bool haserror = llvm::verifyModule(*theModule, &llvm::errs());
+         if (haserror) {
+             return;
+         }
+         auto targetTriple = llvm::sys::getDefaultTargetTriple();
+         this->theModule->setTargetTriple(targetTriple);
 
-     std::string error;
-     auto Target = llvm::TargetRegistry::lookupTarget(targetTriple, error);
+         std::string error;
+         auto Target = llvm::TargetRegistry::lookupTarget(targetTriple, error);
 
-     if (!Target) {
-       llvm::errs() << error;
-       return;
-     }
+         if (!Target) {
+             llvm::errs() << error;
+             return;
+         }
 
-     auto CPU = "generic";
-     auto features = "";
+         auto CPU = "generic";
+         auto features = "";
 
-     llvm::TargetOptions opt;
-     auto RM = llvm::Optional<llvm::Reloc::Model>();
-     auto theTargetMachine =
-         Target->createTargetMachine(targetTriple, CPU, features, opt, RM);
+         llvm::TargetOptions opt;
+         auto RM = llvm::Optional<llvm::Reloc::Model>();
+         auto theTargetMachine =
+                 Target->createTargetMachine(targetTriple, CPU, features, opt, RM);
 
-     this->theModule->setDataLayout(theTargetMachine->createDataLayout());
-     this->theModule->setTargetTriple(targetTriple);
-     std::error_code EC;
-     llvm::raw_fd_ostream dest(moduleName + ".o", EC, llvm::sys::fs::OF_Text);
+         this->theModule->setDataLayout(theTargetMachine->createDataLayout());
+         this->theModule->setTargetTriple(targetTriple);
+         std::error_code EC;
+         llvm::raw_fd_ostream dest(moduleName + ".o", EC, llvm::sys::fs::OF_Text);
 
-     llvm::legacy::PassManager pass;
-     auto fileType = llvm::TargetMachine::CGFT_ObjectFile;
+         llvm::legacy::PassManager pass;
+         auto fileType = llvm::TargetMachine::CGFT_ObjectFile;
 
-     if (theTargetMachine->addPassesToEmitFile(pass, dest, nullptr, fileType)) {
-       llvm::errs() << "theTargetMachine can't emit a file of this type";
-       return;
-     }
+         if (theTargetMachine->addPassesToEmitFile(pass, dest, nullptr, fileType)) {
+             llvm::errs() << "theTargetMachine can't emit a file of this type";
+             return;
+         }
 
-     pass.run(*this->theModule.get());
-     dest.flush();
+         pass.run(*this->theModule.get());
+         dest.flush();
 
-     return;
-   */
-  }
+         return;
+     */
+    }
 };
 } // namespace thlang
 

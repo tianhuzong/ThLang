@@ -1,11 +1,152 @@
 整数型 main(){
-    整数型 a = 0;
-    整数型 ff = 0
-    如果(a == 1){
-        ff =  a - 1;
-    }
-    否则 如果(1 == 1){
-        ff =  a;
-    }
-    返回 ff
+ 整数型 ff = 0
+整数型 aa = 1
+整数型 gdEIOociQHZHsVnGXF = 0
+整数型 bQwr_QEvDiozWMXXiOjxi = 0
+整数型 lcvrNoiMxzNLCuoWRtKIhCvm = 0
+整数型 mYOdiIHFnQecMJxBCWvl = 0
+整数型 gVIZWhlqyZQOLVuRLvdRQX = 0
+整数型 TQKxnBnC_OcNjHWhB = 0
+整数型 m_kXXycxyABzTcd_UIl_a = 0
+如果(mYOdiIHFnQecMJxBCWvl == 11){ff = 1}
+如果(bQwr_QEvDiozWMXXiOjxi == 16){ff = 1}
+否则 如果(gdEIOociQHZHsVnGXF == 19){ff = 1}
+否则 如果(gVIZWhlqyZQOLVuRLvdRQX == 17){ff = 1}
+否则 如果(m_kXXycxyABzTcd_UIl_a == 5){ff = 1}
+否则 如果(bQwr_QEvDiozWMXXiOjxi == 20){ff = 1}
+否则 如果(gdEIOociQHZHsVnGXF == 18){ff = 1}
+否则 如果(gVIZWhlqyZQOLVuRLvdRQX == 6){ff = 1}
+否则 如果(bQwr_QEvDiozWMXXiOjxi == 18){ff = 1}
+否则 如果(gdEIOociQHZHsVnGXF == 7){ff = 1}
+否则 如果(gVIZWhlqyZQOLVuRLvdRQX == 7){ff = 1}
+否则 如果(lcvrNoiMxzNLCuoWRtKIhCvm == 8){ff = 1}
+如果(bQwr_QEvDiozWMXXiOjxi == 8){ff = 1}
+否则 如果(m_kXXycxyABzTcd_UIl_a == 7){ff = 1}
+否则 如果(bQwr_QEvDiozWMXXiOjxi == 17){ff = 1}
+否则 如果(TQKxnBnC_OcNjHWhB == 20){ff = 1}
+否则 如果(mYOdiIHFnQecMJxBCWvl == 17){ff = 1}
+否则 如果(mYOdiIHFnQecMJxBCWvl == 6){ff = 1}
+否则 如果(TQKxnBnC_OcNjHWhB == 16){ff = 1}
+否则 如果(bQwr_QEvDiozWMXXiOjxi == 18){ff = 1}
+否则 如果(m_kXXycxyABzTcd_UIl_a == 7){ff = 1}
+否则 如果(TQKxnBnC_OcNjHWhB == 12){ff = 1}
+否则 如果(lcvrNoiMxzNLCuoWRtKIhCvm == 16){ff = 1}
+否则 如果(gdEIOociQHZHsVnGXF == 6){ff = 1}
+否则 如果(mYOdiIHFnQecMJxBCWvl == 11){ff = 1}
+否则 如果(bQwr_QEvDiozWMXXiOjxi == 15){ff = 1}
+否则 如果(TQKxnBnC_OcNjHWhB == 14){ff = 1}
+否则 如果(gdEIOociQHZHsVnGXF == 8){ff = 1}
+否则 如果(m_kXXycxyABzTcd_UIl_a == 6){ff = 1}
+否则 如果(mYOdiIHFnQecMJxBCWvl == 10){ff = 1}
+否则 如果(gdEIOociQHZHsVnGXF == 11){ff = 1}
+否则{ff = 0}
+如果(m_kXXycxyABzTcd_UIl_a == 8){ff = 1}
+整数型 ZShilJJyRVakONL = 0
+整数型 oslVtAiByvlpMwwZjJ = 0
+整数型 HKuYbfjLBqerVfheB = 0
+整数型 qLNLOlnsiABujvxHyRq = 0
+整数型 xwdpxbdttBZbsvkmUsfwdXtSu = 0
+整数型 vjWmMQqogQOypoJERB = 0
+整数型 SexDjyCXpPWkOvW = 0
+整数型 hTrESeP_inCYHMduHBT = 0
+整数型 NBMRGDSkUCpiGdVDbzX_ = 0
+整数型 fcnpiHoJvxwMqPkrNgFuuDMDy = 0
+整数型 Smwo_UyftMYkB_DoTWaNrtKk = 0
+整数型 BZYvDChaoFtuTMeMbS = 0
+整数型 bFeGKFBkiunBowefSs = 0
+整数型 SDh_ifueoolwdDzqlU_JDiFuc = 0
+整数型 ySizUgMmZJD_GXA = 0
+整数型 NJBPcabyocLoxScfhK = 0
+整数型 biEiNehQK_jyerSOM = 0
+整数型 xjvT_dAvZHHUXjE = 0
+如果(bQwr_QEvDiozWMXXiOjxi == 19){ff = 1}
+否则 如果(TQKxnBnC_OcNjHWhB == 15){ff = 1}
+否则 如果(ySizUgMmZJD_GXA == 15){ff = 1}
+否则 如果(gVIZWhlqyZQOLVuRLvdRQX == 14){ff = 1}
+否则 如果(m_kXXycxyABzTcd_UIl_a == 14){ff = 1}
+否则 如果(HKuYbfjLBqerVfheB == 9){ff = 1}
+否则 如果(gVIZWhlqyZQOLVuRLvdRQX == 19){ff = 1}
+否则 如果(ySizUgMmZJD_GXA == 18){ff = 1}
+否则 如果(qLNLOlnsiABujvxHyRq == 14){ff = 1}
+否则 如果(bQwr_QEvDiozWMXXiOjxi == 18){ff = 1}
+否则 如果(fcnpiHoJvxwMqPkrNgFuuDMDy == 11){ff = 1}
+否则 如果(Smwo_UyftMYkB_DoTWaNrtKk == 10){ff = 1}
+否则 如果(hTrESeP_inCYHMduHBT == 5){ff = 1}
+否则 如果(gdEIOociQHZHsVnGXF == 10){ff = 1}
+否则 如果(qLNLOlnsiABujvxHyRq == 11){ff = 1}
+否则 如果(bQwr_QEvDiozWMXXiOjxi == 11){ff = 1}
+如果(qLNLOlnsiABujvxHyRq == 13){ff = 1}
+否则 如果(bQwr_QEvDiozWMXXiOjxi == 19){ff = 1}
+否则 如果(mYOdiIHFnQecMJxBCWvl == 19){ff = 1}
+否则 如果(m_kXXycxyABzTcd_UIl_a == 8){ff = 1}
+否则 如果(qLNLOlnsiABujvxHyRq == 15){ff = 1}
+否则 如果(mYOdiIHFnQecMJxBCWvl == 13){ff = 1}
+否则 如果(BZYvDChaoFtuTMeMbS == 11){ff = 1}
+否则 如果(gVIZWhlqyZQOLVuRLvdRQX == 19){ff = 1}
+否则 如果(ySizUgMmZJD_GXA == 18){ff = 1}
+否则 如果(ZShilJJyRVakONL == 12){ff = 1}
+否则 如果(qLNLOlnsiABujvxHyRq == 11){ff = 1}
+否则 如果(SDh_ifueoolwdDzqlU_JDiFuc == 8){ff = 1}
+否则 如果(m_kXXycxyABzTcd_UIl_a == 11){ff = 1}
+否则 如果(SexDjyCXpPWkOvW == 14){ff = 1}
+否则 如果(SexDjyCXpPWkOvW == 7){ff = 1}
+否则 如果(bQwr_QEvDiozWMXXiOjxi == 9){ff = 1}
+否则 如果(gdEIOociQHZHsVnGXF == 9){ff = 1}
+否则 如果(lcvrNoiMxzNLCuoWRtKIhCvm == 6){ff = 1}
+否则 如果(BZYvDChaoFtuTMeMbS == 19){ff = 1}
+否则 如果(mYOdiIHFnQecMJxBCWvl == 6){ff = 1}
+否则 如果(biEiNehQK_jyerSOM == 14){ff = 1}
+否则{ff = 0}
+如果(m_kXXycxyABzTcd_UIl_a == 20){ff = 1}
+否则{ff = 0}
+如果(qLNLOlnsiABujvxHyRq == 7){ff = 1}
+否则 如果(NBMRGDSkUCpiGdVDbzX_ == 10){ff = 1}
+否则 如果(mYOdiIHFnQecMJxBCWvl == 18){ff = 1}
+否则 如果(Smwo_UyftMYkB_DoTWaNrtKk == 6){ff = 1}
+否则 如果(oslVtAiByvlpMwwZjJ == 9){ff = 1}
+否则 如果(Smwo_UyftMYkB_DoTWaNrtKk == 7){ff = 1}
+否则 如果(bFeGKFBkiunBowefSs == 7){ff = 1}
+否则 如果(mYOdiIHFnQecMJxBCWvl == 7){ff = 1}
+否则 如果(xwdpxbdttBZbsvkmUsfwdXtSu == 13){ff = 1}
+否则{ff = 0}
+如果(xwdpxbdttBZbsvkmUsfwdXtSu == 16){ff = 1}
+整数型 QeryuFyFpeCBAbO = 0
+整数型 mqeHoQ_ajvHMsKCe = 0
+整数型 kGamTWKMrzDGyZdVbGfaFxS = 0
+整数型 tHIrewrmEUQDndfUMQgRtU_Et = 0
+整数型 rEyvocCbnFvXVqNIWm = 0
+整数型 cPoIXFRyaoCAMLYsHM = 0
+整数型 srdQqFMYDBnQklcMOYCuY = 0
+整数型 RQtejMlKWJafUIwJWVQpA = 0
+整数型 uDCZCdzsp_dhrQx_ = 0
+整数型 aiXYAMeRvHqlhtPegLiC = 0
+整数型 wddVCtwiFCERPHhscgLp = 0
+整数型 IvJfjKcBXTnygUaRxbWo = 0
+整数型 kSU_MWtkqS_OxOMGgNWLR = 0
+整数型 lNBOqxiUuUcKpEfmwyGQ = 0
+整数型 JpCPsNVlfhUXjimla_ry = 0
+整数型 cmKaXEyuiFuKnaVKoqhLmnhEp = 0
+整数型 BDtrkZQOXpvHKZnAQjf_LhwJ = 0
+整数型 eviBckxMIEHAqWEBUH = 0
+如果(SexDjyCXpPWkOvW == 14){ff = 1}
+否则{ff = 0}
+如果(lcvrNoiMxzNLCuoWRtKIhCvm == 18){ff = 1}
+如果(HKuYbfjLBqerVfheB == 17){ff = 1}
+如果(hTrESeP_inCYHMduHBT == 6){ff = 1}
+否则 如果(kSU_MWtkqS_OxOMGgNWLR == 9){ff = 1}
+否则 如果(lcvrNoiMxzNLCuoWRtKIhCvm == 12){ff = 1}
+否则 如果(gdEIOociQHZHsVnGXF == 13){ff = 1}
+否则 如果(qLNLOlnsiABujvxHyRq == 10){ff = 1}
+否则 如果(Smwo_UyftMYkB_DoTWaNrtKk == 7){ff = 1}
+否则 如果(cmKaXEyuiFuKnaVKoqhLmnhEp == 15){ff = 1}
+否则 如果(bFeGKFBkiunBowefSs == 14){ff = 1}
+否则{ff = 0}
+如果(biEiNehQK_jyerSOM == 16){ff = 1}
+否则{ff = 0}
+整数型 hzsSRbpwwvWlECETtgf = 0
+整数型 cInFOWLxotuoPiRAsg = 0
+如果(lcvrNoiMxzNLCuoWRtKIhCvm == 9){ff = 1}
+否则{ff = 0}
+返回 0;
 }
+
