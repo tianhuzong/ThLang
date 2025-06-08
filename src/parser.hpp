@@ -50,44 +50,44 @@ extern int yydebug;
   enum yytokentype
   {
     TOKEN_INT = 258,
-    TOKEN_FLOAT = 259,
-    TOKEN_PLUS = 260,
-    TOKEN_MINUS = 261,
-    TOKEN_MUL = 262,
-    TOKEN_DIV = 263,
-    LPAREN = 264,
-    RPAREN = 265,
-    LBRACKET = 266,
-    RBRACKET = 267,
-    LBRACE = 268,
-    RBRACE = 269,
-    TOKEN_RETURN = 270,
-    TOKEN_IF = 271,
-    TOKEN_ELSE = 272,
-    TOKEN_WHILE = 273,
-    TOKEN_FOR = 274,
-    TOKEN_EXTERN = 275,
-    TOKEN_EQUAL = 276,
-    TOKEN_CEQ = 277,
-    TOKEN_NEL = 278,
-    TOKEN_NLT = 279,
-    TOKEN_NLE = 280,
-    TOKEN_NGT = 281,
-    TOKEN_NGE = 282,
-    TOKEN_XOR = 283,
-    TOKEN_MOD = 284,
-    TOKEN_SHL = 285,
-    TOKEN_SHR = 286,
-    TOKEN_AND = 287,
-    TOKEN_OR = 288,
-    TOKEN_NOT = 289,
-    TOKEN_COMMA = 290,
-    TOKEN_SEMICOLON = 291,
-    TOKEN_DOT = 292,
-    TOKEN_NEWLINE = 293,
-    TOKEN_ID = 294,
-    NUM = 295,
-    TOKEN_STRING = 296,
+    TOKEN_PLUS = 259,
+    TOKEN_MINUS = 260,
+    TOKEN_MUL = 261,
+    TOKEN_DIV = 262,
+    LPAREN = 263,
+    RPAREN = 264,
+    LBRACKET = 265,
+    RBRACKET = 266,
+    LBRACE = 267,
+    RBRACE = 268,
+    TOKEN_RETURN = 269,
+    TOKEN_IF = 270,
+    TOKEN_ELSE = 271,
+    TOKEN_WHILE = 272,
+    TOKEN_FOR = 273,
+    TOKEN_EXTERN = 274,
+    TOKEN_EQUAL = 275,
+    TOKEN_CEQ = 276,
+    TOKEN_NEL = 277,
+    TOKEN_NLT = 278,
+    TOKEN_NLE = 279,
+    TOKEN_NGT = 280,
+    TOKEN_NGE = 281,
+    TOKEN_XOR = 282,
+    TOKEN_MOD = 283,
+    TOKEN_SHL = 284,
+    TOKEN_SHR = 285,
+    TOKEN_AND = 286,
+    TOKEN_OR = 287,
+    TOKEN_NOT = 288,
+    TOKEN_COMMA = 289,
+    TOKEN_SEMICOLON = 290,
+    TOKEN_DOT = 291,
+    TOKEN_NEWLINE = 292,
+    TOKEN_ID = 293,
+    NUM = 294,
+    TOKEN_STRING = 295,
+    TOKEN_FLOAT = 296,
     UMINUS = 297,
     UPLUS = 298,
     UFACT = 299
@@ -105,13 +105,14 @@ union YYSTYPE
     int token;
     thlang::Node *node;
     thlang::NBlock *block;
-    thlang::ExprAst *stmt;
+    thlang::ExprAst *expr;
+    thlang::VarStmtAst *var_decl;
     thlang::Type *type;
     std::string *values;
-    thlang::VarList* varvec; //用于函数的参数列表
+    thlang::VarList* varvec;
     thlang::ExprList* exprvec;
 
-#line 115 "parser.hpp"
+#line 116 "parser.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;

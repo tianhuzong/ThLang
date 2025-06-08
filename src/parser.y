@@ -1,4 +1,3 @@
-
 %{
     #include <bits/stdc++.h>
     #include <stdio.h>
@@ -11,10 +10,11 @@
     int yylex();
     int findMapping(const char *type);
     void addMapping(const char *type, int token);
-    void yyerror(thlang::NModule &root_program, thlang::CodeGenContext& context, const char *s) { printf("Error:  %s,lineno: %d\n", s, yylineno);exit(1); }
+    void yyerror(thlang::NModule &root_program, thlang::CodeGenContext& context, const char *s) { 
+        printf("Error: %s, lineno: %d\n", s, yylineno);
+        exit(1); 
+    }
     int nums;
-    
-    
 %}
 
 %union{
@@ -23,47 +23,39 @@
     int token;
     thlang::Node *node;
     thlang::NBlock *block;
-    thlang::ExprAst *stmt;
+    thlang::ExprAst *expr;
+    thlang::VarStmtAst *var_decl;
     thlang::Type *type;
     std::string *values;
-    thlang::VarList* varvec; //用于函数的参数列表
+    thlang::VarList* varvec;
     thlang::ExprList* exprvec;
 }
 
+%token <token> TOKEN_INT   /* int */
+%token <token> TOKEN_PLUS TOKEN_MINUS TOKEN_MUL TOKEN_DIV /* + - * / */
+%token <token> LPAREN RPAREN /* ( ) */ LBRACKET RBRACKET /* [ ] */ LBRACE RBRACE /* { } */
+%token <token> TOKEN_RETURN /* return */ TOKEN_IF /* if */ TOKEN_ELSE /* else */ TOKEN_WHILE /* while */ TOKEN_FOR /* for */ TOKEN_EXTERN
+%token <token> TOKEN_EQUAL TOKEN_CEQ TOKEN_NEL TOKEN_NLT TOKEN_NLE TOKEN_NGT TOKEN_NGE /* = == != < <= > >= */
+%token <token> TOKEN_XOR TOKEN_MOD TOKEN_SHL TOKEN_SHR /* ^ % << >> */
+%token <token> TOKEN_AND TOKEN_OR TOKEN_NOT /* && || ! */
+%token <token> TOKEN_COMMA /* , */ TOKEN_SEMICOLON /* ; */ TOKEN_DOT /* . */ TOKEN_NEWLINE /* \n */
+%token <string> TOKEN_ID NUM TOKEN_STRING TOKEN_FLOAT /* identifier */
 
-%token <token> TOKEN_INT TOKEN_FLOAT  /*int float string*/
-%token <token> TOKEN_PLUS TOKEN_MINUS TOKEN_MUL TOKEN_DIV /*+ - * / */
-%token <token> LPAREN RPAREN /*( ) */ LBRACKET RBRACKET /*[ ] */ LBRACE RBRACE /*{ } */
-%token <token> TOKEN_RETURN /*return*/ TOKEN_IF /*if*/ TOKEN_ELSE /*else*/ TOKEN_WHILE /*while*/ TOKEN_FOR /*for*/ TOKEN_EXTERN
-%token <token> TOKEN_EQUAL TOKEN_CEQ TOKEN_NEL TOKEN_NLT TOKEN_NLE TOKEN_NGT TOKEN_NGE /*= ==!= < <= > >= */
-%token <token> TOKEN_XOR TOKEN_MOD TOKEN_SHL TOKEN_SHR /*^ % << >> */
-%token <token> TOKEN_AND TOKEN_OR TOKEN_NOT /*&& || !*/
-%token <token> TOKEN_COMMA /*, */ TOKEN_SEMICOLON /*; */ TOKEN_DOT /*. */ TOKEN_NEWLINE /*\n*/
-%token <string> TOKEN_ID NUM TOKEN_STRING/*identifier*/
-
-/*
-%type <block> program block stmts
-%type <exprvec>  call_args 
-%type <varvec> func_decl_args
-%type <expr>  expr assign
-%type <stmt>  stmt if_stmt while_stmt for_stmt var_decl func_decl 
-%type <tkid>  tkid
-%type <token> op
-*/
 %type<node> program  
 %type<node> stmt if_stmt while_stmt for_stmt var_decl func_decl 
-%type<node> expr assign tkid
+%type<node> expr assign 
 %type<block> block stmts
 %type<str> op
-%type<type> types
-%type<varvec> func_args // 函数参数列表
-%type <exprvec>  call_args // 函数调用传递参数
+%type<type> types type_id
+%type<expr> var_id
+%type<varvec> func_args
+%type<exprvec> call_args
 
 %left TOKEN_PLUS TOKEN_MINUS
 %left TOKEN_MUL TOKEN_DIV TOKEN_MOD
-%right UMINUS // 负号
-%right UPLUS  // 正号
-%right UFACT  // 感叹号
+%right UMINUS
+%right UPLUS
+%right UFACT
 
 %parse-param {thlang::NModule &root_program}
 %parse-param {thlang::CodeGenContext &context}
@@ -72,93 +64,135 @@
 %%
 
 program : stmts {
-    root_program  = thlang::NModule();
+    root_program = thlang::NModule();
     root_program.block = std::unique_ptr<thlang::Node>($1);
-} ;
+};
 
 block : LBRACE stmts RBRACE { $$ = $2; }
-    | LBRACE RBRACE { $$ = new thlang::NBlock(); }
+     | LBRACE RBRACE { $$ = new thlang::NBlock(); };
 
 stmts : stmts stmt { $1->stmts->push_back(std::unique_ptr<thlang::Node>($2)); $$ = $1; }
-    | stmts TOKEN_SEMICOLON { $$ = $1; }
-    | stmts TOKEN_SEMICOLON stmt { $1->stmts->push_back(std::unique_ptr<thlang::Node>($3)); $$ = $1; }
-    | stmt { auto ast = new thlang::NBlock(); ast->stmts->push_back(std::unique_ptr<thlang::Node>($1)); $$ = ast; }
+     | stmts TOKEN_SEMICOLON { $$ = $1; }
+     | stmts TOKEN_SEMICOLON stmt { $1->stmts->push_back(std::unique_ptr<thlang::Node>($3)); $$ = $1; }
+     | stmt { auto ast = new thlang::NBlock(); ast->stmts->push_back(std::unique_ptr<thlang::Node>($1)); $$ = ast; };
 
+stmt : if_stmt { $$ = $1; }
+     | while_stmt { $$ = $1; }
+     | for_stmt { $$ = $1; }
+     | var_decl { $$ = $1; }
+     | func_decl { $$ = $1; }
+     | TOKEN_RETURN expr { $$ = new thlang::ReturnStmtAst(std::unique_ptr<thlang::Node>($2)); }
+     | expr { $$ = new thlang::ExprStmtAst(std::move(std::unique_ptr<thlang::Node>($1))); };
 
-
-stmt : if_stmt {$$ = $1;}
-    | while_stmt {$$ = $1;}
-    | for_stmt {$$ = $1;}
-    | var_decl {$$ = $1;}
-    | func_decl {$$ = $1;}
-    | TOKEN_RETURN expr { $$ = new thlang::ReturnStmtAst(std::unique_ptr<thlang::Node>($2)); }
-    | expr { $$ = new thlang::ExprStmtAst(std::move(std::unique_ptr<thlang::Node>($1))); }
-    
 expr : NUM {
     $$ = new thlang::IntAst(std::atol($1->c_str()));
     delete $1;
     }
-    | TOKEN_STRING { $$ = new thlang::StringAst(*$1); delete $1; } //TODO
+    | TOKEN_STRING { $$ = new thlang::StringAst(*$1); delete $1; }
+    | TOKEN_FLOAT { $$ = new thlang::FloatAst(std::stod($1->c_str())); delete $1; }
     | assign { $$ = $1; }
-    | tkid { $$ = $1; }
-    | LPAREN expr RPAREN {$$ = $2; }
+    | var_id { $$ = $1; }
+    | LPAREN expr RPAREN { $$ = $2; }
     | expr op expr { $$ = new thlang::BinOpAst(*$2, std::unique_ptr<thlang::Node>($1), std::unique_ptr<thlang::Node>($3)); delete $2; }
     | expr TOKEN_MOD expr { $$ = new thlang::BinOpAst("%", std::unique_ptr<thlang::Node>($1), std::unique_ptr<thlang::Node>($3)); }
     | expr TOKEN_MUL expr { $$ = new thlang::BinOpAst("*", std::unique_ptr<thlang::Node>($1), std::unique_ptr<thlang::Node>($3)); }
     | expr TOKEN_DIV expr { $$ = new thlang::BinOpAst("/", std::unique_ptr<thlang::Node>($1), std::unique_ptr<thlang::Node>($3)); }
     | expr TOKEN_PLUS expr { $$ = new thlang::BinOpAst("+", std::unique_ptr<thlang::Node>($1), std::unique_ptr<thlang::Node>($3)); }
     | expr TOKEN_MINUS expr { $$ = new thlang::BinOpAst("-", std::unique_ptr<thlang::Node>($1), std::unique_ptr<thlang::Node>($3)); }
-    | TOKEN_MINUS expr %prec UMINUS { $$ = new thlang::UnOpAst("-", std::unique_ptr<thlang::Node>($2)); }  // 负号
-    | TOKEN_PLUS expr %prec UPLUS { $$ = new thlang::UnOpAst("+", std::unique_ptr<thlang::Node>($2)); }  // 正号
-    | TOKEN_NOT expr %prec UFACT { $$ = new thlang::UnOpAst("!", std::unique_ptr<thlang::Node>($2)); }  // 感叹号
-    | tkid LPAREN call_args RPAREN { $$ = new thlang::CallExprAst(std::unique_ptr<thlang::Node>($1), std::unique_ptr<thlang::ExprList>($3)); }    
+    | TOKEN_MINUS expr %prec UMINUS { $$ = new thlang::UnOpAst("-", std::unique_ptr<thlang::Node>($2)); }
+    | TOKEN_PLUS expr %prec UPLUS { $$ = new thlang::UnOpAst("+", std::unique_ptr<thlang::Node>($2)); }
+    | TOKEN_NOT expr %prec UFACT { $$ = new thlang::UnOpAst("!", std::unique_ptr<thlang::Node>($2)); }
+    | var_id LPAREN call_args RPAREN { $$ = new thlang::CallExprAst(std::unique_ptr<thlang::ExprAst>($1), std::unique_ptr<thlang::ExprList>($3)); };
 
-op :  TOKEN_EQUAL  { $$ = new std::string("="); }
-    | TOKEN_CEQ    { $$ = new std::string("=="); }
-    | TOKEN_NEL    { $$ = new std::string("!="); }
-    | TOKEN_NLT    { $$ = new std::string("<"); }
-    | TOKEN_NLE    { $$ = new std::string("<="); }
-    | TOKEN_NGT    { $$ = new std::string(">"); }
-    | TOKEN_NGE    { $$ = new std::string(">="); }
-    | TOKEN_XOR    { $$ = new std::string("^"); }
-    | TOKEN_SHL    { $$ = new std::string("<<"); }
-    | TOKEN_SHR    { $$ = new std::string(">>"); }
-    | TOKEN_AND    { $$ = new std::string("&&"); }
-    | TOKEN_OR     { $$ = new std::string("||"); }
+op : TOKEN_EQUAL { $$ = new std::string("="); }
+   | TOKEN_CEQ   { $$ = new std::string("=="); }
+   | TOKEN_NEL   { $$ = new std::string("!="); }
+   | TOKEN_NLT   { $$ = new std::string("<"); }
+   | TOKEN_NLE   { $$ = new std::string("<="); }
+   | TOKEN_NGT   { $$ = new std::string(">"); }
+   | TOKEN_NGE   { $$ = new std::string(">="); }
+   | TOKEN_XOR   { $$ = new std::string("^"); }
+   | TOKEN_SHL   { $$ = new std::string("<<"); }
+   | TOKEN_SHR   { $$ = new std::string(">>"); }
+   | TOKEN_AND   { $$ = new std::string("&&"); }
+   | TOKEN_OR    { $$ = new std::string("||"); };
 
-assign : tkid TOKEN_EQUAL expr { $$ = new thlang::AssignAst(std::unique_ptr<thlang::Node>($1), std::move(std::unique_ptr<thlang::Node>($3))); }
+assign : var_id TOKEN_EQUAL expr { 
+    $$ = new thlang::AssignAst(std::unique_ptr<thlang::ExprAst>($1), 
+                              std::move(std::unique_ptr<thlang::Node>($3))); 
+};
 
-for_stmt : TOKEN_FOR LPAREN expr TOKEN_SEMICOLON expr TOKEN_SEMICOLON expr RPAREN block { $$ = new thlang::ForStmtAst(std::unique_ptr<thlang::Node>($3), std::unique_ptr<thlang::Node>($5), std::unique_ptr<thlang::Node>($7), std::unique_ptr<thlang::Node>($9)); }
+for_stmt : TOKEN_FOR LPAREN expr TOKEN_SEMICOLON expr TOKEN_SEMICOLON expr RPAREN block { 
+    $$ = new thlang::ForStmtAst(std::unique_ptr<thlang::Node>($3), 
+                               std::unique_ptr<thlang::Node>($5), 
+                               std::unique_ptr<thlang::Node>($7), 
+                               std::unique_ptr<thlang::Node>($9)); 
+};
 
-while_stmt : TOKEN_WHILE LPAREN expr RPAREN block  { $$ = new thlang::WhileStmtAst(std::unique_ptr<thlang::Node>($3), std::unique_ptr<thlang::Node>($5)); }
+while_stmt : TOKEN_WHILE LPAREN expr RPAREN block { 
+    $$ = new thlang::WhileStmtAst(std::unique_ptr<thlang::Node>($3), 
+                                 std::unique_ptr<thlang::Node>($5)); 
+};
 
-if_stmt : TOKEN_IF LPAREN expr RPAREN block {$$ = new thlang::IfStmtAst(std::unique_ptr<thlang::Node>($3), std::unique_ptr<thlang::Node>($5)); }
-    | TOKEN_IF LPAREN expr RPAREN block TOKEN_ELSE block {$$ = new thlang::IfStmtAst(std::unique_ptr<thlang::Node>($3), std::unique_ptr<thlang::Node>($5), std::unique_ptr<thlang::Node>($7)); }
+if_stmt : TOKEN_IF LPAREN expr RPAREN block { 
+    $$ = new thlang::IfStmtAst(std::unique_ptr<thlang::Node>($3), 
+                              std::unique_ptr<thlang::Node>($5)); 
+}
+    | TOKEN_IF LPAREN expr RPAREN block TOKEN_ELSE block { 
+        $$ = new thlang::IfStmtAst(std::unique_ptr<thlang::Node>($3), 
+                                  std::unique_ptr<thlang::Node>($5), 
+                                  std::unique_ptr<thlang::Node>($7)); 
+    }
     | TOKEN_IF LPAREN expr RPAREN block TOKEN_ELSE if_stmt { 
-		auto blk = new thlang::NBlock(); 
-		blk->stmts->push_back(std::unique_ptr<thlang::Node>($7)); 
-		$$ = new thlang::IfStmtAst(std::unique_ptr<thlang::Node>($3), std::unique_ptr<thlang::Node>($5), std::unique_ptr<thlang::Node>(blk)); 
-	}
+        auto blk = new thlang::NBlock(); 
+        blk->stmts->push_back(std::unique_ptr<thlang::Node>($7)); 
+        $$ = new thlang::IfStmtAst(std::unique_ptr<thlang::Node>($3), 
+                                  std::unique_ptr<thlang::Node>($5), 
+                                  std::unique_ptr<thlang::Node>(blk)); 
+    };
 
-var_decl : types tkid {auto type = context.typeSystem.get_type("整数型");  $$ = new thlang::VarStmtAst(type, std::unique_ptr<thlang::Node>($2)); }
-    | types tkid TOKEN_EQUAL  expr {auto type = context.typeSystem.get_type("整数型"); $$ = new thlang::VarStmtAst(type, std::unique_ptr<thlang::Node>($2), std::unique_ptr<thlang::Node>($4)); }
+var_decl : types var_id { 
+    $$ = new thlang::VarStmtAst($1, std::unique_ptr<thlang::ExprAst>($2)); 
+}
+    | types var_id TOKEN_EQUAL expr {
+        $$ = new thlang::VarStmtAst($1, 
+                                   std::unique_ptr<thlang::Node>($2), 
+                                   std::unique_ptr<thlang::Node>($4)); 
+    };
 
+func_args : /* 没有参数 */ { $$ = new thlang::VarList(); }
+    | var_decl { $$ = new thlang::VarList(); $$->push_back(std::unique_ptr<thlang::VarStmtAst>($<var_decl>1)); }
+    | func_args TOKEN_COMMA var_decl { $1->push_back(std::unique_ptr<thlang::VarStmtAst>($<var_decl>3)); }
+    ;
 
-func_args : /*没有参数*/ { $$ = new thlang::VarList(); }
-    | var_decl { $$ = new thlang::VarList(); $$->push_back(std::unique_ptr<VarStmtAst>($<var_decl>1)); }
-	| func_args TOKEN_COMMA var_decl { $1->push_back(std::unique_ptr<VarStmtAst>($<var_decl>3)); }
-	;
+func_decl : types var_id LPAREN func_args RPAREN block { 
+    $$ = new thlang::FunctionStmtAst($1, 
+                                    std::unique_ptr<thlang::ExprAst>($2), 
+                                    std::unique_ptr<thlang::VarList>($4), 
+                                    std::unique_ptr<thlang::Node>($6)); 
+};
 
-func_decl : types tkid LPAREN func_args RPAREN block { $$ = new thlang::FunctionStmtAst($1, std::unique_ptr<thlang::Node>($2), std::unique_ptr<thlang::VarList>($4), std::unique_ptr<thlang::Node>($5)); }
+call_args : /* 无参数列表 */ { $$ = new thlang::ExprList(); }
+    | expr { $$ = new thlang::ExprList(); $$->push_back(std::unique_ptr<thlang::ExprAst>($<expr>1)); }
+    | call_args TOKEN_COMMA expr { $1->push_back(std::unique_ptr<thlang::ExprAst>($<expr>3)); }
+    ;
 
-call_args : /*无参数列表*/ { $$ = new thlang::ExprList(); }
-    | expr { $$ = new thlang::ExprList(); $$->push_back(std::unique_ptr<ExprAst>($1)); }
-    | call_args TOKEN_COMMA expr { $1->push_back(std::unique_ptr<ExprAst>($<expr>3)); }
+types : TOKEN_INT { $$ = context.typeSystem.get_type("整数型"); }
+    | type_id { $$ = $1; }
+    ;
 
-tkid : TOKEN_ID { $$ = new thlang::NameAst(*$1); delete $1; }
+type_id : TOKEN_ID { 
+    thlang::Type* t = context.typeSystem.get_type(*$1) ;
+    if (t == context.typeSystem.get_type("空类型")) {
+        LogError("未知的数据类型" +  *$1);
+    }
+    $$ = t;
+    delete $1;
+};
 
-types : TOKEN_INT {$$ = context.typeSystem.get_type("整数型");}
-    | tkid {$$ = context.typeSystem.get_type(*$1); delete $1;}
+var_id : TOKEN_ID { 
+    $$ = new thlang::NameAst(*$1);
+    delete $1;
+};
 
 %%
-

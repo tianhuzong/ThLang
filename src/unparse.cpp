@@ -42,6 +42,10 @@ void AssignAst::unparse() {
     return;
 }
 
+void CallExprAst::unparse() {
+    return;
+}
+
 void ExprStmtAst::unparse() {
     return;
 }

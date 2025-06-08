@@ -40,7 +40,7 @@ esac
 #clang++ main.cpp parser.cpp lex.yy.cpp codegen.cpp -o lex -lreflex  `llvm-config --cxxflags --ldflags --system-libs --libs`
 
 cd src
-./${EXE_NAME} -yy lex.l
+#./${EXE_NAME} -yy lex.l
 cd ..
 cmake -B build .
 cd build

@@ -8,6 +8,7 @@
 #include "llvm/IR/Verifier.h"
 #include <llvm/ADT/SmallVector.h>
 #include <llvm/ADT/StringRef.h>
+#include <llvm/ADT/APFloat.h>
 #include <llvm/IR/LegacyPassManager.h>
 #include <llvm/MC/TargetRegistry.h>
 #include <llvm/Support/FileSystem.h>
@@ -59,13 +60,13 @@ public:
     std::unordered_map<std::string, thlang::_Symbol> getlocals() {
         return blocks.back()->locals;
     }
-    llvm::Value *getvalue(std::string name) {
+    thlang::_Symbol getvalue(std::string name) {
         for (auto it : blocks) {
             if (it->locals.find(name) != it->locals.end()) {
-                return it->locals[name].second;
+                return it->locals[name];
             }
         }
-        return nullptr;
+        return std::make_pair<thlang::Type*, llvm::Value *>(nullptr, nullptr);
     }
 
     void setvalue(std::string name, thlang::Type* type, llvm::Value *value) {

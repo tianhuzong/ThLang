@@ -51,7 +51,7 @@ llvm::Value *IntAst::codegen(thlang::CodeGenContext &context) {
 
 llvm::Value *FloatAst::codegen(thlang::CodeGenContext &context) {
     return llvm::ConstantFP::get(llvm::Type::getDoubleTy(context.getContext()),
-                                                             value);
+                                                             llvm::APFloat(value));
 }
 
 llvm::Value *StringAst::codegen(thlang::CodeGenContext &context) {
@@ -67,12 +67,12 @@ llvm::Value *NameAst::codegen(thlang::CodeGenContext &context) {
     // return new
     // LoadInst(context.locals()[name]->getType(),context.locals()[name], name,
     // false, context.currentBlock());
-    llvm::Value *value = context.getvalue(this->name);
+    llvm::Value *value = context.getvalue(this->name).second;
     if (!value) {
         LogError("Name " + this->name + " is not defined");
     }
     // TODO: 修改类型
-    return context.builder.CreateLoad(context.builder.getInt32Ty(), value, false);
+    return context.builder.CreateLoad(context.typeSystem.get_llvm_type(context.getvalue(this->name).first), value, false);
 }
 
 llvm::Value *BoolAst::codegen(thlang::CodeGenContext &context) {
@@ -104,13 +104,40 @@ llvm::Value *BinOpAst::codegen(thlang::CodeGenContext &context) {
         return nullptr;
     }
     if (this->op == "+") {
-        return context.builder.CreateAdd(lhs, rhs, "addtmp");
+        // TODO: 对于其他类型例如文本的要进行更多判断
+        if (lhs->getType()->isFloatingPointTy() || rhs->getType()->isFloatingPointTy()){
+            return context.builder.CreateFAdd(lhs, rhs, "addtmp");
+        }
+        else{
+            return context.builder.CreateAdd(lhs, rhs, "addtmp");
+        }
     } else if (this->op == "-") {
-        return context.builder.CreateSub(lhs, rhs, "subtmp");
+        // TODO: 对于其他类型例如文本的要进行更多判断
+        if (lhs->getType()->isFloatingPointTy() || rhs->getType()->isFloatingPointTy()){
+            return context.builder.CreateFSub(lhs, rhs, "subtmp");
+        }
+        else{
+            return context.builder.CreateSub(lhs, rhs, "subtmp");
+        }
+        
     } else if (this->op == "*") {
-        return context.builder.CreateMul(lhs, rhs, "multmp");
+        // TODO: 对于其他类型例如文本的要进行更多判断
+        if (lhs->getType()->isFloatingPointTy() || rhs->getType()->isFloatingPointTy()){
+            return context.builder.CreateFMul(lhs, rhs, "multmp");
+        }
+        else{
+            return context.builder.CreateMul(lhs, rhs, "multmp");
+        }
+
     } else if (this->op == "/") {
-        return context.builder.CreateSDiv(lhs, rhs, "divtmp");
+        // TODO: 对于其他类型例如文本的要进行更多判断
+        if (lhs->getType()->isFloatingPointTy() || rhs->getType()->isFloatingPointTy()){
+            return context.builder.CreateFDiv(lhs, rhs, "divtmp");
+        }
+        else{
+            return context.builder.CreateSDiv(lhs, rhs, "divtmp");
+        }
+        
     } else if (this->op == "&" || this->op == "且") {
         return context.builder.CreateAnd(lhs, rhs, "andtmp");
     } else if (this->op == "||" || this->op == "或") {
@@ -145,7 +172,7 @@ llvm::Value *AssignAst::codegen(thlang::CodeGenContext &context) {
     auto nameast = static_cast<thlang::NameAst *>((this->name).get());
 
     // 从上下文中获取变量名对应的 LLVM 值
-    llvm::Value *dst = context.getvalue(nameast->name);
+    llvm::Value *dst = context.getvalue(nameast->name).second;
     if (!dst) {
         // 如果变量未定义，记录错误信息并返回
         return LogError("未定义的标识符: " + nameast->name);
@@ -177,7 +204,30 @@ llvm::Value* AssignAst::codegen(thlang::CodeGenContext& context) {
         return dst;
 }
 */
+
+llvm::Value *CallExprAst::codegen(thlang::CodeGenContext &context){
+    // TODO: 对不同模块中的函数进行处理 考虑放在语义分析模块
+    thlang::NameAst* function_name = static_cast<thlang::NameAst*>(this->call_name.get());
+    llvm::Function * function = context.theModule->getFunction(function_name->name);
+    if( !function ){
+        LogError("函数" + function_name->name + " 不存在");
+    }
+    if( function->arg_size() != this->args->size() ){
+        // TODO : 具体参数调整
+        LogError("参数数量不匹配" );
+    }
+    std::vector<llvm::Value*> args;
+    for(auto &it : *this->args){
+        args.push_back((it)->codegen(context));
+        if( !args.back() ){        // 如果有参数生成失败，那么返回nullptr
+            return nullptr;
+        }
+    }
+    return context.builder.CreateCall(function, args, "calltmp");
+}
+
 llvm::Value *ExprStmtAst::codegen(thlang::CodeGenContext &context) {
+    assert(this->expr);
     return this->expr->codegen(context);
 }
 
@@ -187,7 +237,7 @@ llvm::Value *VarStmtAst::codegen(thlang::CodeGenContext &context) {
     // context.builder.CreateAlloca(context.typeSystem.get_llvm_type(this->type),
     // nullptr, nameast->name.c_str());
     llvm::Value *inst =
-            context.builder.CreateAlloca(llvm::Type::getInt32Ty(context.llvmContext));
+            context.builder.CreateAlloca(context.typeSystem.get_llvm_type(this->type));
     context.setvalue(nameast->name, this->type, inst);
     if (this->init != nullptr) {
         // thlang::ExprAst* exprast = new thlang::ExprAst(*(this->init.get()));
@@ -384,13 +434,11 @@ llvm::Value *FunctionStmtAst::codegen(thlang::CodeGenContext &context) {
     std::vector<llvm::Type *> argTypes;
     if (!this->args->empty()) {
         for (const auto &arg : *this->args) {
-            // TODO:argTypes.push_back(context.typeSystem.get_llvm_type(arg->type));
-            argTypes.push_back(llvm::Type::getInt32Ty(context.getContext()));
+            argTypes.push_back(context.typeSystem.get_llvm_type(arg->type));
+            //argTypes.push_back();
         }
     }
-    // TODO:
-    // llvm::Type* retType = context.typeSystem.get_llvm_type(this->type);
-    llvm::Type *retType = llvm::Type::getInt32Ty(context.getContext());
+    llvm::Type* retType = context.typeSystem.get_llvm_type(this->type);
 
     llvm::FunctionType *functionType =
             llvm::FunctionType::get(retType, argTypes, false);
@@ -413,11 +461,8 @@ llvm::Value *FunctionStmtAst::codegen(thlang::CodeGenContext &context) {
             thlang::Type *arg_type = (*origin_arg)->type;
             llvm::Type *arg_type_llvm = context.typeSystem.get_llvm_type(arg_type);
             ir_arg_it.setName(arg_name->name);
-            // TODO:llvm::Value* argAlloc = context.builder.CreateAlloca(arg_type,
-            // nullptr, ir_arg_it.getName().str() + ".addr");
-            llvm::Value *argAlloc = context.builder.CreateAlloca(
-                    llvm::Type::getInt32Ty(context.getContext()), nullptr,
-                    ir_arg_it.getName().str() + ".addr");
+            llvm::Value* argAlloc = context.builder.CreateAlloca(arg_type_llvm,
+            nullptr, ir_arg_it.getName().str() + ".addr");
             context.builder.CreateStore(&ir_arg_it, argAlloc);
             context.setvalue(arg_name->name, arg_type, argAlloc);
             origin_arg++;

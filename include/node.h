@@ -10,6 +10,7 @@
 #include <iostream>
 #include <memory>
 #include <unordered_map>
+#include <utility>
 
 // TODO: 使用命名空间
 
@@ -20,6 +21,8 @@ class VarStmtAst;
 class ExprAst;
 using VarList = std::vector<std::unique_ptr<VarStmtAst>>;
 using ExprList = std::vector<std::unique_ptr<ExprAst>>;
+
+
 
 class Node {
 public:
@@ -62,8 +65,8 @@ public:
 
 class FloatAst : public ExprAst {
 public:
-    long double value;
-    FloatAst(long double value) : value(value){};
+    double value;
+    FloatAst(double value) : value(value){};
     virtual llvm::Value *codegen(thlang::CodeGenContext &context) override;
     virtual void unparse();
 };
@@ -125,6 +128,16 @@ public:
             : name(std::move(name)), expr(std::move(expr)) {}
     virtual llvm::Value *codegen(thlang::CodeGenContext &context) override;
     virtual void unparse();
+};
+
+class CallExprAst : public ExprAst {
+public:
+    std::unique_ptr<thlang::Node> call_name; // 被调用的函数的名字
+    std::unique_ptr<thlang::ExprList> args; // 被调用的参数
+    CallExprAst(std::unique_ptr<thlang::Node> call_name, std::unique_ptr<thlang::ExprList> args)
+        : call_name(std::move(call_name)), args(std::move(args)){}
+    virtual llvm::Value *codegen(thlang::CodeGenContext &context) override;
+    virtual void unparse();  
 };
 
 // 语句节点 : 表达式语句 赋值语句 if语句 for语句 while语句 函数定义语句
@@ -215,8 +228,18 @@ public:
     virtual void unparse() override;
 };
 
+
+
 class ClassStmtAst : public StmtAst {
 public:
+};
+
+
+/*为了处理tkid指向名字还是类型的问题 特此编写一个结构体*/
+struct type_or_name {
+    size_t tag; //  1 = name 2 = type
+    thlang::Type* type;
+    thlang::NameAst* name;
 };
 
 } // namespace thlang
