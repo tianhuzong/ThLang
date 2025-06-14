@@ -1,5 +1,5 @@
-#include "codegen.h"
-#include "node.h"
+#include <thlang/codegen.h>
+#include <thlang/node.h>
 #include <iostream>
 using namespace std;
 thlang::NModule root_module;

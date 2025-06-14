@@ -1,4 +1,4 @@
-#include "node.h"
+#include <thlang/node.h>
 namespace thlang {
 
 

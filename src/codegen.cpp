@@ -1,4 +1,4 @@
-#include "codegen.h"
+#include <thlang/codegen.h>
 
 const static bool is_in_debug = true; // TODO:remove
 void print_value(std::string something) {

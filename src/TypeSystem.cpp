@@ -1,4 +1,4 @@
-#include "TypeSystem.h"
+#include <thlang/TypeSystem.h>
 #include <iostream>
 
 namespace thlang {

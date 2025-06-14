@@ -1,4 +1,4 @@
-#include "sema.h"
+#include <thlang/sema.h>
 #include <iostream>
 
 namespace thlang {

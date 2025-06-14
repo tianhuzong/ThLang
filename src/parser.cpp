@@ -73,8 +73,8 @@
     #include <stdlib.h>
     #include <cstdio>
     #include <string>
-    #include "node.h"
-    #include "codegen.h"
+    #include <thlang/node.h>
+    #include <thlang/codegen.h>
     extern int yylineno;
     int yylex();
     int findMapping(const char *type);
