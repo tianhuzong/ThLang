@@ -1,3 +1,4 @@
+#include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -44,6 +45,42 @@ void ThInit(const std::string& package_name, const std::string& version, const s
     file << buffer.GetString();
     std::cout << "Done...\n";
     file.close();
+
+    // 设置readme
+    // TODO
+    std::string readme = "# " + package_name +
+        "\n## 项目简介" +
+        "\n" + description +
+        "\n - 作者: " + author +
+        "\n - 项目主页: " + url +
+        "\n - 版本号: " + version +
+        "\n - github地址: " + git_repository +
+        "\n - 许可证:" + license +
+        "\n\n## 使用方法:" \
+        "\n```sh" \
+        "\nthlang build main.th -o main" \
+        "\n./main" \
+        "\n```\n";
+    
+    std::ofstream readme_f(package_name + "/Readme.md");
+    if(!readme_f.is_open()){
+        std::cerr << "Readme.md 写入失败!\n";
+        return ;
+    }
+    readme_f << readme;
+    readme_f.close();
+
+    // main.th
+    std::string main_th = "整数型 入口(){\n    返回 0;\n}\n";
+    std::ofstream main_th_f(package_name + "/" + entry_point);
+    if(!main_th_f.is_open()){
+        std::cerr << entry_point << " 写入失败!\n";
+        return ;
+    }
+    main_th_f << main_th;
+    main_th_f.close();
+
+
 }
 
 void ThInfo() {
@@ -85,7 +122,7 @@ void ThInfo() {
         std::cout << "主页 url: " << url << "\n";
         std::cout << "许可证 license: " << license << "\n";
     } else {
-        std::cerr << "文件 ThlangProject.json 不存在！\n请尝试init创建项目\n";
+        std::cerr << "文件 ThlangProject.json 不存在！\n请尝试init创建项目\n"; // TODO:修改命令行工具名称
     }
 }
 
