@@ -8,7 +8,7 @@ def append_v(the_list, val):
     return val
 
 def fake_code():
-    code = "整数型 main(){\n整数型 ff = 0\n整数型 aa = 1\n"
+    code = "整数型 入口(){\n整数型 ff = 0\n整数型 aa = 1\n"
     used_name = ["ff","aa"]
     for x in range(random.randint(5,20)):
         ctype = code_type[random.randint(0,2)]

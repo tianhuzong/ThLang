@@ -444,9 +444,10 @@ llvm::Value *FunctionStmtAst::codegen(thlang::CodeGenContext &context) {
             llvm::FunctionType::get(retType, argTypes, false);
     thlang::NameAst *function_name =
             static_cast<thlang::NameAst *>(this->name.get());
+    std::string fname = (function_name->name.c_str() == "入口") ? "main" : function_name->name.c_str();
     llvm::Function *function = llvm::Function::Create(
             functionType, llvm::GlobalValue::ExternalLinkage,
-            function_name->name.c_str(), context.theModule.get());
+            fname, context.theModule.get());
 
     if (!this->is_extern) {
         llvm::BasicBlock *entryBlock = llvm::BasicBlock::Create(

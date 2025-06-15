@@ -13,26 +13,28 @@ case "$OS" in
         cp third_party/reflex/src/reflex src/reflex_exe
         cp third_party/reflex/lib/libreflex.a lib/
         cp third_party/reflex/lib/libreflexmin.a lib/
+        cp third_party/reflex/lib/libreflex.so lib/  # 复制动态库
         EXE_NAME='reflex_exe'
         ;;
     Darwin)
-        #echo "当前操作系统为 macOS（基于 Darwin 内核）"
         cp third_party/reflex/src/reflex src/reflex_exe
         cp third_party/reflex/lib/libreflex.a lib/
         cp third_party/reflex/lib/libreflexmin.a lib/
+        cp third_party/reflex/lib/libreflex.dylib lib/  # 复制动态库
         EXE_NAME='reflex_exe'
         ;;
-    MINGW* | MSYS*)
+    MINGW* | MSYS* | CYGWIN*)
         cp third_party/reflex/src/reflex.exe src/reflex_exe.exe
         cp third_party/reflex/lib/reflex.lib lib/
         cp third_party/reflex/lib/reflexmin.lib lib/
+        cp third_party/reflex/lib/reflex.dll lib/  # 复制动态库
         EXE_NAME='reflex_exe.exe'
         ;;
     *)
-        #echo "当前操作系统为类 Unix 系统，按照类 Unix 方式处理"
         cp third_party/reflex/src/reflex src/reflex_exe
         cp third_party/reflex/lib/libreflex.a lib/
         cp third_party/reflex/lib/libreflexmin.a lib/
+        cp third_party/reflex/lib/libreflex.so lib/  # 复制动态库
         EXE_NAME='reflex_exe'
         ;;
 esac
