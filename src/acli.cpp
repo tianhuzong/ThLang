@@ -10,6 +10,10 @@
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
 
+#include <thlang/thlang.h>
+
+
+
 
 void ThInit(const std::string& package_name, const std::string& version, const std::string& description, const std::string& entry_point, const std::string& author, const std::string& git_repository, const std::string& url, const std::string& license) {
     // 创建 JSON 文档
@@ -141,8 +145,10 @@ int main(int argc, char** argv) {
     init->add_option("--url", url, "主页url");
     init->add_option("--license", license, "许可证");
 
-
+    std::string file, output;
     auto *build = app.add_subcommand("build", "对当前目录进行打包");
+    build->add_option("file", file, "文件名");
+    build->add_option("-o, --output", output, "输出文件名");
 
     auto *info = app.add_subcommand("info", "获取当前包的信息");
 
@@ -190,6 +196,12 @@ int main(int argc, char** argv) {
     }
     else if(*info){
         ThInfo();
+    }
+    else if(*build){
+        std::string output_code = thlang::compile_from_file(file);
+        std::ofstream file(output);
+        file << output_code;
+        file.close();
     }
 
     return 0;

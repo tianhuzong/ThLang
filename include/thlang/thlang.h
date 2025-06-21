@@ -7,14 +7,7 @@
 #include <fstream>
 #include <sstream>
 
-#include <thlang/codegen.h>
-#include <thlang/node.h>
 
-#include <llvm/IR/Module.h>
-#include <llvm/Support/raw_ostream.h>
-
-extern int yyparse(thlang::NModule &root_program, thlang::CodeGenContext &context);
-extern FILE* yyin;
 namespace thlang {
 std::string compile(const std::string& code);
 std::string compile_from_file(const std::string& file_path);
