@@ -22,7 +22,8 @@ rad.json
 TestResults.xml
 
 #CMake Cache
-build/*
+build/
+*.o
 
 #core dumped
 core.*

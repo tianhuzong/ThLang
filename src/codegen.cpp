@@ -479,6 +479,30 @@ llvm::Value *FunctionStmtAst::codegen(thlang::CodeGenContext &context) {
 
 } // namespace thlang
 
+
+std::unique_ptr<llvm::Module> parseIRFromString(llvm::LLVMContext& context, 
+                                              const std::string& irText) {
+    // 创建内存缓冲区
+    auto buffer = llvm::MemoryBuffer::getMemBuffer(irText);
+    
+    // 创建诊断信息
+    llvm::SMDiagnostic err;
+    
+    // 直接使用MemoryBufferRef解析
+    auto module = llvm::parseAssembly(
+        buffer->getMemBufferRef(),  // 这才是正确的参数类型
+        err,
+        context
+    );
+    
+    if (!module) {
+        err.print("IRParser", llvm::errs());
+        return nullptr;
+    }
+    
+    return std::move(module);
+}
+
 llvm::Value *LogError(std::string str) {
     std::cerr << str << "\n";
     return nullptr;

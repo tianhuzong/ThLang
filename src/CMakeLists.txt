@@ -21,10 +21,33 @@ target_include_directories(thlang PUBLIC
     ${PROJECT_SOURCE_DIR}/include
     ${PROJECT_SOURCE_DIR}/src
     ${PROJECT_SOURCE_DIR}/third_party/reflex/include
+    ${PROJECT_SOURCE_DIR}/third_party/lld/include
+    ${PROJECT_SOURCE_DIR}/third_party/lld/include/
+    ${PROJECT_SOURCE_DIR}/third_party/lld/ELF/
+    ${PROJECT_SOURCE_DIR}/third_party/lld/MachO/
+    ${PROJECT_SOURCE_DIR}/third_party/lld/MinGW/
+    ${PROJECT_SOURCE_DIR}/third_party/lld/Wasm/
+    ${PROJECT_SOURCE_DIR}/third_party/build/ELF/
+    ${PROJECT_SOURCE_DIR}/third_party/build/MachO/
+    ${PROJECT_SOURCE_DIR}/third_party/build/MinGW/
+    ${PROJECT_SOURCE_DIR}/third_party/build/Wasm/
+
     ${LLVM_INCLUDE_DIRS}
 )
-target_link_directories(thlang PUBLIC ${PROJECT_SOURCE_DIR}/lib)
-target_link_libraries(thlang ${REFLEX_STATIC_LIB} LLVM)
+target_link_directories(thlang PUBLIC ${PROJECT_SOURCE_DIR}/lib ${PROJECT_SOURCE_DIR}/third_party/build/lib)
+target_link_libraries(thlang 
+    ${REFLEX_STATIC_LIB} 
+    lldELF
+    lldCOFF
+    lldMachO
+    lldWasm
+    lldMinGW
+    lldCommon
+    LLVM
+    zstd
+    z
+    pthread
+)
 
 # 编译main
 add_executable(compiler ${MAIN_SOURCE})

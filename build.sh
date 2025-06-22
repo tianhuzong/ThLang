@@ -5,7 +5,14 @@ cd third_party/reflex
 
 echo -e '\033[31m reflex built \033[0m'
 
-cd ../..
+cd ../
+
+cmake ./lld -B build
+cmake --buils build
+
+echo -e "\033[31mlld built\033[0m"
+cd ../
+
 OS=$(uname)
 
 case "$OS" in
@@ -45,8 +52,7 @@ cd src
 bison -d parser.y -o parser.cpp
 ./${EXE_NAME} -yy lex.l
 cd ..
-cmake -B build .
-cd build
-make
-cd ..
+cmake -B build . 
+cmake --build build
+
 
