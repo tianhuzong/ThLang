@@ -1,5 +1,10 @@
+#pragma once
 #ifndef THLANG_TYPESYSTEM_H
 #define THLANG_TYPESYSTEM_H
+
+// TODO:设计类型系统时,对于文本型等类型做一个标记,目前无实际意义
+#define DYNAMIC_SIZE -1
+
 
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Type.h"
@@ -57,27 +62,18 @@ public:
     virtual llvm::Type* get_llvm_type(llvm::LLVMContext& context) override;
 };
 
-class StructType : public Type {
-private:
-    std::vector<std::pair<Type*, std::string>> members; // 改为指针
-public:
-    StructType(std::string type_name, bool implicit_copy = false) 
-        : Type(type_name, implicit_copy,  0) {}; // 结构体可标记隐式复制
-
-    void add_member(Type* type, const std::string& member_name) ;
-    virtual llvm::Type* get_llvm_type(llvm::LLVMContext& context) override;
-};
 
 class TypeSystem {
 private:
-    llvm::LLVMContext& llvmContext;
+    
     std::unordered_map<std::string, Type*> type_map; // 改为指针存储
+    llvm::LLVMContext llvmContext;
     static Type* empty_type_ptr;
 public:
-    TypeSystem(llvm::LLVMContext& llvmContext) ;
-
+    TypeSystem() ;
+    
     void add_type(const std::string& type_name, Type* type) ;
-
+    llvm::LLVMContext& getContext();
     Type* get_type(const std::string& type_name) ;
 
     llvm::Type* get_llvm_type(Type* type) ;
@@ -86,5 +82,7 @@ public:
 };
 
 } // namespace thlang
+
+extern thlang::TypeSystem type_System;
 
 #endif // THLANG_TYPESYSTEM_H

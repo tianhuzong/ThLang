@@ -86,8 +86,8 @@ extern int yydebug;
     TOKEN_NEWLINE = 292,
     TOKEN_ID = 293,
     NUM = 294,
-    TOKEN_STRING = 295,
-    TOKEN_FLOAT = 296,
+    STRING = 295,
+    FLOAT = 296,
     UMINUS = 297,
     UPLUS = 298,
     UFACT = 299

@@ -39,7 +39,7 @@
 %token <token> TOKEN_XOR TOKEN_MOD TOKEN_SHL TOKEN_SHR /* ^ % << >> */
 %token <token> TOKEN_AND TOKEN_OR TOKEN_NOT /* && || ! */
 %token <token> TOKEN_COMMA /* , */ TOKEN_SEMICOLON /* ; */ TOKEN_DOT /* . */ TOKEN_NEWLINE /* \n */
-%token <string> TOKEN_ID NUM TOKEN_STRING TOKEN_FLOAT /* identifier */
+%token <string> TOKEN_ID NUM STRING FLOAT /* identifier */
 
 %type<node> program  
 %type<node> stmt if_stmt while_stmt for_stmt var_decl func_decl 
@@ -88,8 +88,8 @@ expr : NUM {
     $$ = new thlang::IntAst(std::atol($1->c_str()));
     delete $1;
     }
-    | TOKEN_STRING { $$ = new thlang::StringAst(*$1); delete $1; }
-    | TOKEN_FLOAT { $$ = new thlang::FloatAst(std::stod($1->c_str())); delete $1; }
+    | STRING { $$ = new thlang::StringAst(*$1); delete $1; }
+    | FLOAT { $$ = new thlang::FloatAst(std::stod($1->c_str())); delete $1; }
     | assign { $$ = $1; }
     | var_id { $$ = $1; }
     | LPAREN expr RPAREN { $$ = $2; }
@@ -170,7 +170,13 @@ func_decl : types var_id LPAREN func_args RPAREN block {
                                     std::unique_ptr<thlang::ExprAst>($2), 
                                     std::unique_ptr<thlang::VarList>($4), 
                                     std::unique_ptr<thlang::Node>($6)); 
-};
+    };
+    | TOKEN_EXTERN types var_id LPAREN func_args RPAREN {
+        $$ = new thlang::FunctionStmtAst($2, 
+                                    std::unique_ptr<thlang::ExprAst>($3), 
+                                    std::unique_ptr<thlang::VarList>($5), 
+                                    nullptr, true); 
+    }
 
 call_args : /* 无参数列表 */ { $$ = new thlang::ExprList(); }
     | expr { $$ = new thlang::ExprList(); $$->push_back(std::unique_ptr<thlang::ExprAst>($<expr>1)); }

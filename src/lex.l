@@ -48,11 +48,12 @@
 "否则"                                          { return TOKEN(TOKEN_ELSE); }
 "."                                             { return TOKEN(TOKEN_DOT); }
 "!"                                             { return TOKEN(TOKEN_NOT); }
-(\"[^"\n]*\"|\'[^"\n]*\')                       { SAVE_TOKEN; return TOKEN_STRING; }
-(([-+]?\d+\.\d{0,})|(\d+\.?\d{0,}[eE][+-]?\d+)) { SAVE_TOKEN; return TOKEN_FLOAT; }
+(\"[^"\n]*\"|\'[^"\n]*\')                       { SAVE_TOKEN; return STRING; }
+(([-+]?\d+\.\d{0,})|(\d+\.?\d{0,}[eE][+-]?\d+)) { SAVE_TOKEN; return FLOAT; }
 [-+]?[0-9]+                                     { SAVE_TOKEN; return NUM; }
 "整数型"                                         { SAVE_TOKEN;return TOKEN_INT; }
 "返回"                                           { return TOKEN(TOKEN_RETURN); }
+"外部"                                          { return TOKEN(TOKEN_EXTERN); }
 [\p{L}_][\p{L}\p{N}_]*                          { SAVE_TOKEN;return TOKEN_ID; }
 .              { /* 忽略其他字符 cout<<"line"<<yylineno<<" type:ERRORTOKEN,value:"<<yytext<<"\n"; */}
 

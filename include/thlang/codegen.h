@@ -1,3 +1,4 @@
+#pragma once
 #ifndef THLANG_CODEGEN_H
 #define THLANG_CODEGEN_H
 
@@ -33,6 +34,8 @@
 #include "node.h"
 #include "sema.h"
 
+extern thlang::TypeSystem type_System;
+
 namespace thlang {
 
 using _Symbol = std::pair<thlang::Type*, llvm::Value *>;
@@ -49,16 +52,16 @@ class CodeGenContext {
     std::vector<CodeGenBlock *> blocks;
 
 public:
-    llvm::LLVMContext llvmContext;
+    llvm::LLVMContext& llvmContext = type_System.getContext();
     llvm::IRBuilder<> builder;
-    thlang::TypeSystem typeSystem;
+    thlang::TypeSystem& typeSystem ;
     std::unique_ptr<llvm::Module> theModule;
     std::unordered_map<std::string, thlang::_Symbol> globals;
     std::vector<thlang::Type> types;
     std::string ObjCode;
     std::string moduleName;
     CodeGenContext(std::string moduleName = "main")
-            : builder(llvmContext), typeSystem(llvmContext) {
+            : builder(llvmContext), typeSystem(type_System) {
         this->moduleName = llvm::sys::path::filename(moduleName);
         theModule = std::make_unique<llvm::Module>("main", this->llvmContext);
     }

@@ -11,7 +11,16 @@ cmake ./lld -B build
 cmake --buils build
 
 echo -e "\033[31mlld built\033[0m"
+
+cd musl
+./configure
+make
+cd ..
+
+echo -e "\033[31mmusl libc built\033[0m"
+
 cd ../
+
 
 OS=$(uname)
 

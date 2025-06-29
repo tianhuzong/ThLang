@@ -59,6 +59,8 @@ llvm::Value *StringAst::codegen(thlang::CodeGenContext &context) {
     if(it != symTable.end()){
             return it->second;
     }*/
+    value.erase(0,1);
+    value.pop_back();
     return context.builder.CreateGlobalString(value);
 }
 

@@ -272,4 +272,15 @@ main:
 	.size	main, .Lfunc_end3-main
 	.cfi_endproc
 
+	.globl	abc
+	.p2align	4, 0x90
+	.type	abc,@function
+abc:
+	.cfi_startproc
+	xorl	%eax, %eax
+	retq
+.Lfunc_end4:
+	.size	abc, .Lfunc_end4-abc
+	.cfi_endproc
+
 	.section	".note.GNU-stack","",@progbits

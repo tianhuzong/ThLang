@@ -145,7 +145,8 @@ int main(int argc, char** argv) {
     init->add_option("--url", url, "主页url");
     init->add_option("--license", license, "许可证");
 
-    std::string file, output;
+    std::string output;
+    std::vector<std::string> file;
     auto *build = app.add_subcommand("build", "对当前目录进行打包");
     build->add_option("file", file, "文件名");
     build->add_option("-o, --output", output, "输出文件名");
@@ -198,10 +199,7 @@ int main(int argc, char** argv) {
         ThInfo();
     }
     else if(*build){
-        std::string output_code = thlang::compile_from_file(file);
-        std::ofstream file(output);
-        file << output_code;
-        file.close();
+        thlang::compile_from_files_to_exe(file, output.c_str());
     }
 
     return 0;
