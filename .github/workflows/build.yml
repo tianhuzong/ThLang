@@ -16,10 +16,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up LLVM 18
-        if: runner.os != 'Windows'
+      - name: Set up LLVM 18 on Ubuntu
+        if: runner.os == 'Linux'
         run: |
-          wget -O - https://apt.llvm.org/llvm.sh | bash -s 18
+          sudo apt-get update
+          sudo apt-get install -y llvm-18 llvm-18-dev clang-18 lld-18
           echo "/usr/lib/llvm-18/bin" >> $GITHUB_PATH
 
       - name: Set up LLVM 18 on Windows
@@ -27,6 +28,12 @@ jobs:
         run: |
           choco install llvm --version 18.0.0 -y
           echo "C:\Program Files\LLVM\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Set up LLVM 18 on macOS
+        if: runner.os == 'macOS'
+        run: |
+          brew install llvm@18
+          echo "/usr/local/opt/llvm@18/bin" >> $GITHUB_PATH
 
       - name: Build on Linux and Mac
         if: runner.os != 'Windows'
