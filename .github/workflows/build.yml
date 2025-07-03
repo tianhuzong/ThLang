@@ -63,10 +63,17 @@ jobs:
       - name: Build on Windows
         if: runner.os == 'Windows'
         run: |
-          ls
-          pwd
-          choco install git -y
-          C:\ProgramData\chocolatey\lib\git\tools\git-bash.exe -c "bash build.sh"
+          # 安装 Git（如果尚未安装）
+          choco install git -y --no-progress
+          
+          # 使用正确的 Git Bash 路径
+          $gitBashPath = "$env:ProgramFiles\Git\bin\bash.exe"
+          if (-not (Test-Path $gitBashPath)) {
+              $gitBashPath = "$env:ProgramFiles\Git\usr\bin\bash.exe"
+          }
+          
+          # 运行构建脚本
+          & $gitBashPath -c "bash build.sh"
 
       - name: Verify LLVM installation
         run: |
