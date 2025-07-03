@@ -3,7 +3,7 @@ name: Cross-Platform Build
 on:
   push:
     branches:
-      - main  # 可根据实际情况修改分支名称
+      - main
 
 jobs:
   build:
@@ -39,12 +39,11 @@ jobs:
         if: runner.os != 'Windows'
         run: |
           chmod +x build.sh
-          ./build.sh
+          bash build.sh  # 直接使用 bash 命令运行
 
       - name: Build on Windows
         if: runner.os == 'Windows'
         run: |
-          # 由于 .sh 脚本在 Windows 上不能直接运行，需要安装 Git Bash 环境
           choco install git -y
           C:\ProgramData\chocolatey\lib\git\tools\git-bash.exe -c "bash build.sh"
 
