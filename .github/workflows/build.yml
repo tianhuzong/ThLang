@@ -11,10 +11,6 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        include:
-          - os: macos-latest
-            llvm_path: /usr/local/opt/llvm@18
-            llvm_config: ${{ github.workspace }}/llvm-config-wrapper
 
     steps:
       - name: Checkout code
@@ -23,8 +19,8 @@ jobs:
       - name: Set up LLVM 18 on Ubuntu
         if: runner.os == 'Linux'
         run: |
-          sudo apt update
-          sudo apt install -y llvm-18 llvm-18-dev clang-18 lld-18
+          sudo apt-get update
+          sudo apt-get install -y llvm-18 llvm-18-dev clang-18 lld-18
           echo "/usr/lib/llvm-18/bin" >> $GITHUB_PATH
           echo "LLVM_DIR=/usr/lib/llvm-18/lib/cmake/llvm" >> $GITHUB_ENV
 
@@ -39,15 +35,11 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           brew install llvm@18
-          echo "${{ matrix.llvm_path }}/bin" >> $GITHUB_PATH
-          echo "LLVM_DIR=${{ matrix.llvm_path }}/lib/cmake/llvm" >> $GITHUB_ENV
-          echo "CMAKE_PREFIX_PATH=${{ matrix.llvm_path }}" >> $GITHUB_ENV
-          
-          # 创建 llvm-config 包装器解决路径问题
-          echo '#!/bin/sh' > ${{ matrix.llvm_config }}
-          echo 'exec ${{ matrix.llvm_path }}/bin/llvm-config "$@"' >> ${{ matrix.llvm_config }}
-          chmod +x ${{ matrix.llvm_config }}
-          echo "$(dirname ${{ matrix.llvm_config }})" >> $GITHUB_PATH
+          echo "LLVM_DIR=/opt/homebrew/opt/llvm@18/lib/cmake/llvm" >> $GITHUB_ENV
+          echo "CMAKE_PREFIX_PATH=/opt/homebrew/opt/llvm@18" >> $GITHUB_ENV
+          echo "/opt/homebrew/opt/llvm@18/bin" >> $GITHUB_PATH
+          echo "LDFLAGS=-L/opt/homebrew/opt/llvm@18/lib" >> $GITHUB_ENV
+          echo "CPPFLAGS=-I/opt/homebrew/opt/llvm@18/include" >> $GITHUB_ENV
 
       - name: Build on Linux
         if: runner.os == 'Linux'
@@ -60,7 +52,7 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           chmod +x build.sh
-          export LLVM_CONFIG=llvm-config-wrapper
+          export LLVM_CONFIG=/opt/homebrew/opt/llvm@18/bin/llvm-config
           export SDKROOT=$(xcrun --show-sdk-path)
           ./build.sh
 
@@ -72,10 +64,13 @@ jobs:
 
       - name: Verify LLVM installation
         run: |
-          echo "LLVM configuration:"
-          ${{ runner.os == 'macOS' && 'llvm-config-wrapper' || 'llvm-config-18' }} --version
-          ${{ runner.os == 'macOS' && 'llvm-config-wrapper' || 'llvm-config-18' }} --prefix
-          ${{ runner.os == 'macOS' && 'llvm-config-wrapper' || 'llvm-config-18' }} --libdir
+          if [ "$RUNNER_OS" == "macOS" ]; then
+            /opt/homebrew/opt/llvm@18/bin/llvm-config --version
+          elif [ "$RUNNER_OS" == "Linux" ]; then
+            llvm-config-18 --version
+          else
+            echo "Windows verification not implemented"
+          fi
 
       - name: Package artifacts
         run: |
