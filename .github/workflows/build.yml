@@ -11,6 +11,10 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
+        include:
+          - os: macos-latest
+            llvm_path: /usr/local/opt/llvm@18
+            llvm_config: ${{ github.workspace }}/llvm-config-wrapper
 
     steps:
       - name: Checkout code
@@ -22,24 +26,43 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y llvm-18 llvm-18-dev clang-18 lld-18
           echo "/usr/lib/llvm-18/bin" >> $GITHUB_PATH
+          echo "LLVM_DIR=/usr/lib/llvm-18/lib/cmake/llvm" >> $GITHUB_ENV
 
-      - name: Set up LLVM 18 on Windows
+      - name: Set up LLVM on Windows
         if: runner.os == 'Windows'
         run: |
-          choco install llvm  -y
+          choco install llvm --version 18.0.0 --allow-downgrade -y
           echo "C:\Program Files\LLVM\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          echo "LLVM_DIR=C:\Program Files\LLVM\lib\cmake\llvm" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Set up LLVM 18 on macOS
         if: runner.os == 'macOS'
         run: |
           brew install llvm@18
-          echo "/usr/local/opt/llvm@18/bin" >> $GITHUB_PATH
+          echo "${{ matrix.llvm_path }}/bin" >> $GITHUB_PATH
+          echo "LLVM_DIR=${{ matrix.llvm_path }}/lib/cmake/llvm" >> $GITHUB_ENV
+          echo "CMAKE_PREFIX_PATH=${{ matrix.llvm_path }}" >> $GITHUB_ENV
+          
+          # 创建 llvm-config 包装器解决路径问题
+          echo '#!/bin/sh' > ${{ matrix.llvm_config }}
+          echo 'exec ${{ matrix.llvm_path }}/bin/llvm-config "$@"' >> ${{ matrix.llvm_config }}
+          chmod +x ${{ matrix.llvm_config }}
+          echo "$(dirname ${{ matrix.llvm_config }})" >> $GITHUB_PATH
 
-      - name: Build on Linux and Mac
-        if: runner.os != 'Windows'
+      - name: Build on Linux
+        if: runner.os == 'Linux'
         run: |
           chmod +x build.sh
-          bash build.sh  # 直接使用 bash 命令运行
+          export LLVM_CONFIG=llvm-config-18
+          ./build.sh
+
+      - name: Build on macOS
+        if: runner.os == 'macOS'
+        run: |
+          chmod +x build.sh
+          export LLVM_CONFIG=llvm-config-wrapper
+          export SDKROOT=$(xcrun --show-sdk-path)
+          ./build.sh
 
       - name: Build on Windows
         if: runner.os == 'Windows'
@@ -47,10 +70,17 @@ jobs:
           choco install git -y
           C:\ProgramData\chocolatey\lib\git\tools\git-bash.exe -c "bash build.sh"
 
+      - name: Verify LLVM installation
+        run: |
+          echo "LLVM configuration:"
+          ${{ runner.os == 'macOS' && 'llvm-config-wrapper' || 'llvm-config-18' }} --version
+          ${{ runner.os == 'macOS' && 'llvm-config-wrapper' || 'llvm-config-18' }} --prefix
+          ${{ runner.os == 'macOS' && 'llvm-config-wrapper' || 'llvm-config-18' }} --libdir
+
       - name: Package artifacts
         run: |
-          mkdir artifacts
-          cp -r bin lib artifacts
+          mkdir -p artifacts
+          cp -r bin lib artifacts || true
           tar -czvf artifacts.tar.gz artifacts
 
       - name: Upload artifacts
