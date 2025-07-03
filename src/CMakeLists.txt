@@ -15,6 +15,14 @@ set(LIB_SOURCES
 )
 set(MAIN_SOURCE main.cpp)
 
+# 指定库文件所在的目录
+link_directories(
+    ${PROJECT_SOURCE_DIR}/lib
+    ${PROJECT_SOURCE_DIR}/third_party/build/lib
+    # 如果 libLLVM 动态库被复制到了其他目录，添加该目录
+    ${PROJECT_SOURCE_DIR}/lib  # 假设 libLLVM 库也在这个目录
+)
+
 # 编译 libthlang.so
 add_library(thlang SHARED ${LIB_SOURCES})
 target_include_directories(thlang PUBLIC
@@ -31,10 +39,12 @@ target_include_directories(thlang PUBLIC
     ${PROJECT_SOURCE_DIR}/third_party/build/MachO/
     ${PROJECT_SOURCE_DIR}/third_party/build/MinGW/
     ${PROJECT_SOURCE_DIR}/third_party/build/Wasm/
-
     ${LLVM_INCLUDE_DIRS}
 )
-target_link_directories(thlang PUBLIC ${PROJECT_SOURCE_DIR}/lib ${PROJECT_SOURCE_DIR}/third_party/build/lib)
+
+file(GLOB LLVM_LIBS "${PROJECT_SOURCE_DIR}/lib/libLLVM*.so*" "${PROJECT_SOURCE_DIR}/lib/libLLVM*.dylib" "${PROJECT_SOURCE_DIR}/lib/libLLVM*.dll")
+
+# 链接库文件
 target_link_libraries(thlang 
     ${REFLEX_STATIC_LIB} 
     lldELF
@@ -43,13 +53,13 @@ target_link_libraries(thlang
     lldWasm
     lldMinGW
     lldCommon
-    LLVM
+    ${LLVM_LIBS}  # 链接 LLVM 库
     zstd
     z
     pthread
 )
 
-# 编译main
+# 编译 main
 add_executable(compiler ${MAIN_SOURCE})
 target_include_directories(compiler PUBLIC
     ${PROJECT_SOURCE_DIR}/include

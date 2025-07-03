@@ -8,7 +8,8 @@ echo -e '\033[31m reflex built \033[0m'
 cd ../
 
 cmake ./lld -B build
-cmake --buils build
+# 修正拼写错误：将 --buils 改为 --build
+cmake --build build
 
 echo -e "\033[31mlld built\033[0m"
 
@@ -21,6 +22,8 @@ echo -e "\033[31mmusl libc built\033[0m"
 
 cd ../
 
+# 查找 LLVM 库目录
+LLVM_LIB_DIR=$(llvm-config-18 --libdir)
 
 OS=$(uname)
 
@@ -30,6 +33,8 @@ case "$OS" in
         cp third_party/reflex/lib/libreflex.a lib/
         cp third_party/reflex/lib/libreflexmin.a lib/
         cp third_party/reflex/lib/libreflex.so lib/  # 复制动态库
+        # 复制 LLVM 动态库
+        cp $LLVM_LIB_DIR/libLLVM*.so* lib/
         EXE_NAME='reflex_exe'
         ;;
     Darwin)
@@ -37,6 +42,8 @@ case "$OS" in
         cp third_party/reflex/lib/libreflex.a lib/
         cp third_party/reflex/lib/libreflexmin.a lib/
         cp third_party/reflex/lib/libreflex.dylib lib/  # 复制动态库
+        # 复制 LLVM 动态库
+        cp $LLVM_LIB_DIR/libLLVM*.dylib lib/
         EXE_NAME='reflex_exe'
         ;;
     MINGW* | MSYS* | CYGWIN*)
@@ -44,6 +51,8 @@ case "$OS" in
         cp third_party/reflex/lib/reflex.lib lib/
         cp third_party/reflex/lib/reflexmin.lib lib/
         cp third_party/reflex/lib/reflex.dll lib/  # 复制动态库
+        # 复制 LLVM 动态库
+        cp $LLVM_LIB_DIR/libLLVM*.dll lib/
         EXE_NAME='reflex_exe.exe'
         ;;
     *)
@@ -51,11 +60,11 @@ case "$OS" in
         cp third_party/reflex/lib/libreflex.a lib/
         cp third_party/reflex/lib/libreflexmin.a lib/
         cp third_party/reflex/lib/libreflex.so lib/  # 复制动态库
+        # 复制 LLVM 动态库
+        cp $LLVM_LIB_DIR/libLLVM*.so* lib/
         EXE_NAME='reflex_exe'
         ;;
 esac
-#cd src;bison -d parser.y -o parser.cpp;reflex -yy lex.l;cd ..
-#clang++ main.cpp parser.cpp lex.yy.cpp codegen.cpp -o lex -lreflex  `llvm-config --cxxflags --ldflags --system-libs --libs`
 
 cd src
 bison -d parser.y -o parser.cpp
@@ -63,5 +72,3 @@ bison -d parser.y -o parser.cpp
 cd ..
 cmake -B build . 
 cmake --build build
-
-

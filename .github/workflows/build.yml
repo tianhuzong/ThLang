@@ -1,0 +1,54 @@
+name: Cross-Platform Build
+
+on:
+  push:
+    branches:
+      - main  # 可根据实际情况修改分支名称
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up LLVM 18
+        if: runner.os != 'Windows'
+        run: |
+          wget -O - https://apt.llvm.org/llvm.sh | bash -s 18
+          echo "/usr/lib/llvm-18/bin" >> $GITHUB_PATH
+
+      - name: Set up LLVM 18 on Windows
+        if: runner.os == 'Windows'
+        run: |
+          choco install llvm --version 18.0.0 -y
+          echo "C:\Program Files\LLVM\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Build on Linux and Mac
+        if: runner.os != 'Windows'
+        run: |
+          chmod +x build.sh
+          ./build.sh
+
+      - name: Build on Windows
+        if: runner.os == 'Windows'
+        run: |
+          # 由于 .sh 脚本在 Windows 上不能直接运行，需要安装 Git Bash 环境
+          choco install git -y
+          C:\ProgramData\chocolatey\lib\git\tools\git-bash.exe -c "bash build.sh"
+
+      - name: Package artifacts
+        run: |
+          mkdir artifacts
+          cp -r bin lib artifacts
+          tar -czvf artifacts.tar.gz artifacts
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ runner.os }}-build
+          path: artifacts.tar.gz
