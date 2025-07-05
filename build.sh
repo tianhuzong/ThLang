@@ -28,9 +28,14 @@ fi
 cd ../
 
 # 查找 LLVM 库目录
-LLVM_LIB_DIR=$(llvm-config-18 --libdir)
+LLVM_LIB_DIR=$(llvm-config --libdir)
 
 OS=$(uname)
+
+echo -e "\033[31m"
+echo $(ls)
+echo $(ls third_party/reflex/lib)
+echo -e "\033[0m"
 
 case "$OS" in
     Linux)
