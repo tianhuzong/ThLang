@@ -68,7 +68,7 @@
 /* First part of user prologue.  */
 #line 1 "parser.y"
 
-    #include <bits/stdc++.h>
+    #include <iostream>
     #include <stdio.h>
     #include <stdlib.h>
     #include <cstdio>
