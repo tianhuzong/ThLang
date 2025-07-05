@@ -70,7 +70,9 @@ jobs:
       - name: Package artifacts
         run: |
           mkdir -p artifacts
-          cp -r bin lib artifacts || true
+          cp ./bin/compiler artifacts
+          cp -r lib artifacts || true
+          
           tar -czvf artifacts.tar.gz artifacts
 
       - name: Upload artifacts

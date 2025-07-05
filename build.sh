@@ -34,7 +34,7 @@ OS=$(uname)
 libls=$(ls third_party/reflex/lib)
 out="\033[31m"+${libls}+"   "+${OS}+"\033[0m"
 
-echo -e out
+echo -e ${out}
 
 case "$OS" in
     Linux)
