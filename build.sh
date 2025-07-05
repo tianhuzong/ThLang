@@ -13,12 +13,17 @@ cmake --build build
 
 echo -e "\033[31mlld built\033[0m"
 
-cd musl
-./configure
-make
-cd ..
+OS=$(uname -s)
 
-echo -e "\033[31mmusl libc built\033[0m"
+# 判断是否为 Linux
+if [ "$OS" = "Linux" ]; then
+    cd musl
+    ./configure
+    make
+    cd ..
+
+    echo -e "\033[31mmusl libc built\033[0m"
+fi
 
 cd ../
 
