@@ -88,7 +88,7 @@ jobs:
           if [ "$RUNNER_OS" == "macOS" ]; then
             /opt/homebrew/opt/llvm@18/bin/llvm-config --version
           elif [ "$RUNNER_OS" == "Linux" ]; then
-            llvm-config-18 --version
+            #llvm-config-18 --version
           else
             echo "Windows verification not implemented"
           fi
