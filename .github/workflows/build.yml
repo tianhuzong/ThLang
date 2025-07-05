@@ -10,7 +10,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest,  macos-latest]
 
     steps:
       - name: Checkout code
@@ -24,30 +24,6 @@ jobs:
           echo "/usr/lib/llvm-18/bin" >> $GITHUB_PATH
           echo "LLVM_DIR=/usr/lib/llvm-18/lib/cmake/llvm" >> $GITHUB_ENV
 
-      - name: Set up Windows build environment
-        if: runner.os == 'Windows'
-        run: |
-          # 安装必要工具（忽略个别失败）
-          choco install -y llvm --allow-downgrade --no-progress
-          choco install -y git cmake --no-progress
-          choco install -y winflexbison3 --no-progress
-          choco install -y zlib --no-progress
-          choco install -y zstd --no-progress
-          
-          # 设置环境变量
-          $env:LLVM_DIR = "C:\Program Files\LLVM\lib\cmake\llvm"
-          $env:CMAKE_PREFIX_PATH = "C:\Program Files\LLVM"
-          $env:PATH += ";C:\Program Files\LLVM\bin;C:\Program Files\CMake\bin;C:\Program Files\Git\usr\bin;C:\ProgramData\chocolatey\lib\winflexbison3\tools"
-          
-          # 创建 bison/flex 符号链接
-          New-Item -ItemType SymbolicLink -Path "C:\Program Files\Git\usr\bin\bison.exe" -Target "C:\ProgramData\chocolatey\lib\winflexbison3\tools\win_bison.exe" -Force
-          New-Item -ItemType SymbolicLink -Path "C:\Program Files\Git\usr\bin\flex.exe" -Target "C:\ProgramData\chocolatey\lib\winflexbison3\tools\win_flex.exe" -Force
-    
-          # 验证工具
-          llvm-config --version
-          cmake --version
-          bison --version
-          flex --version
 
       - name: Set up LLVM 18 on macOS
         if: runner.os == 'macOS'
@@ -80,12 +56,6 @@ jobs:
           export SDKROOT=$(xcrun --show-sdk-path)
           ./build.sh
 
-      - name: Build on Windows
-        if: runner.os == 'Windows'
-        run: |
-          # 初始化 VS 构建环境
-          #$vsPath = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
-          #cmd /c "call `"$vsPath\VC\Auxiliary\Build\vcvars64.bat`" && bash build.sh"
 
       - name: Verify LLVM installation
         run: |
