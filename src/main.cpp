@@ -1,4 +1,3 @@
-#include <bits/types/FILE.h>
 #include <thlang/codegen.h>
 #include <thlang/node.h>
 #include <thlang/thlang.h>

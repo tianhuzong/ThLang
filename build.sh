@@ -31,11 +31,10 @@ cd ../
 LLVM_LIB_DIR=$(llvm-config --libdir)
 
 OS=$(uname)
+libls=$(ls third_party/reflex/lib)
+out="\033[31m"+${libls}+"   "+${OS}+"\033[0m"
 
-echo -e "\033[31m"
-echo $(ls)
-echo $(ls third_party/reflex/lib)
-echo -e "\033[0m"
+echo -e out
 
 case "$OS" in
     Linux)
