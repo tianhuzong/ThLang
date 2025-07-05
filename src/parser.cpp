@@ -113,7 +113,7 @@
 # undef YYERROR_VERBOSE
 # define YYERROR_VERBOSE 1
 #else
-# define YYERROR_VERBOSE 1
+# define YYERROR_VERBOSE 0
 #endif
 
 /* Use api.header.include to #include this header
@@ -575,17 +575,17 @@ static const yytype_int8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    66,    66,    71,    72,    74,    75,    76,    77,    79,
-      80,    81,    82,    83,    84,    85,    87,    91,    92,    93,
-      94,    95,    96,    97,    98,    99,   100,   101,   102,   103,
-     104,   105,   107,   108,   109,   110,   111,   112,   113,   114,
-     115,   116,   117,   118,   120,   125,   132,   137,   141,   146,
-     154,   157,   163,   164,   165,   168,   174,   181,   182,   183,
-     186,   187,   190,   199
+       0,    65,    65,    70,    71,    73,    74,    75,    76,    78,
+      79,    80,    81,    82,    83,    84,    86,    90,    91,    92,
+      93,    94,    95,    96,    97,    98,    99,   100,   101,   102,
+     103,   104,   106,   107,   108,   109,   110,   111,   112,   113,
+     114,   115,   116,   117,   119,   124,   131,   136,   140,   145,
+     153,   156,   162,   163,   164,   167,   173,   180,   181,   182,
+     185,   186,   189,   198
 };
 #endif
 
-#if YYDEBUG || YYERROR_VERBOSE || 1
+#if YYDEBUG || YYERROR_VERBOSE || 0
 /* YYTNAME[SYMBOL-NUM] -- String name of the symbol SYMBOL-NUM.
    First, the terminals, then, starting at YYNTOKENS, nonterminals.  */
 static const char *const yytname[] =
@@ -1516,7 +1516,7 @@ yyreduce:
   switch (yyn)
     {
   case 2:
-#line 66 "parser.y"
+#line 65 "parser.y"
                 {
     root_program = thlang::NModule();
     root_program.block = std::unique_ptr<thlang::Node>((yyvsp[0].block));
@@ -1525,85 +1525,85 @@ yyreduce:
     break;
 
   case 3:
-#line 71 "parser.y"
+#line 70 "parser.y"
                             { (yyval.block) = (yyvsp[-1].block); }
 #line 1531 "parser.cpp"
     break;
 
   case 4:
-#line 72 "parser.y"
+#line 71 "parser.y"
                      { (yyval.block) = new thlang::NBlock(); }
 #line 1537 "parser.cpp"
     break;
 
   case 5:
-#line 74 "parser.y"
+#line 73 "parser.y"
                    { (yyvsp[-1].block)->stmts->push_back(std::unique_ptr<thlang::Node>((yyvsp[0].node))); (yyval.block) = (yyvsp[-1].block); }
 #line 1543 "parser.cpp"
     break;
 
   case 6:
-#line 75 "parser.y"
+#line 74 "parser.y"
                              { (yyval.block) = (yyvsp[-1].block); }
 #line 1549 "parser.cpp"
     break;
 
   case 7:
-#line 76 "parser.y"
+#line 75 "parser.y"
                                   { (yyvsp[-2].block)->stmts->push_back(std::unique_ptr<thlang::Node>((yyvsp[0].node))); (yyval.block) = (yyvsp[-2].block); }
 #line 1555 "parser.cpp"
     break;
 
   case 8:
-#line 77 "parser.y"
+#line 76 "parser.y"
             { auto ast = new thlang::NBlock(); ast->stmts->push_back(std::unique_ptr<thlang::Node>((yyvsp[0].node))); (yyval.block) = ast; }
 #line 1561 "parser.cpp"
     break;
 
   case 9:
-#line 79 "parser.y"
+#line 78 "parser.y"
                { (yyval.node) = (yyvsp[0].node); }
 #line 1567 "parser.cpp"
     break;
 
   case 10:
-#line 80 "parser.y"
+#line 79 "parser.y"
                   { (yyval.node) = (yyvsp[0].node); }
 #line 1573 "parser.cpp"
     break;
 
   case 11:
-#line 81 "parser.y"
+#line 80 "parser.y"
                 { (yyval.node) = (yyvsp[0].node); }
 #line 1579 "parser.cpp"
     break;
 
   case 12:
-#line 82 "parser.y"
+#line 81 "parser.y"
                 { (yyval.node) = (yyvsp[0].node); }
 #line 1585 "parser.cpp"
     break;
 
   case 13:
-#line 83 "parser.y"
+#line 82 "parser.y"
                  { (yyval.node) = (yyvsp[0].node); }
 #line 1591 "parser.cpp"
     break;
 
   case 14:
-#line 84 "parser.y"
+#line 83 "parser.y"
                          { (yyval.node) = new thlang::ReturnStmtAst(std::unique_ptr<thlang::Node>((yyvsp[0].node))); }
 #line 1597 "parser.cpp"
     break;
 
   case 15:
-#line 85 "parser.y"
+#line 84 "parser.y"
             { (yyval.node) = new thlang::ExprStmtAst(std::move(std::unique_ptr<thlang::Node>((yyvsp[0].node)))); }
 #line 1603 "parser.cpp"
     break;
 
   case 16:
-#line 87 "parser.y"
+#line 86 "parser.y"
            {
     (yyval.node) = new thlang::IntAst(std::atol((yyvsp[0].string)->c_str()));
     delete (yyvsp[0].string);
@@ -1612,169 +1612,169 @@ yyreduce:
     break;
 
   case 17:
-#line 91 "parser.y"
+#line 90 "parser.y"
              { (yyval.node) = new thlang::StringAst(*(yyvsp[0].string)); delete (yyvsp[0].string); }
 #line 1618 "parser.cpp"
     break;
 
   case 18:
-#line 92 "parser.y"
+#line 91 "parser.y"
             { (yyval.node) = new thlang::FloatAst(std::stod((yyvsp[0].string)->c_str())); delete (yyvsp[0].string); }
 #line 1624 "parser.cpp"
     break;
 
   case 19:
-#line 93 "parser.y"
+#line 92 "parser.y"
              { (yyval.node) = (yyvsp[0].node); }
 #line 1630 "parser.cpp"
     break;
 
   case 20:
-#line 94 "parser.y"
+#line 93 "parser.y"
              { (yyval.node) = (yyvsp[0].expr); }
 #line 1636 "parser.cpp"
     break;
 
   case 21:
-#line 95 "parser.y"
+#line 94 "parser.y"
                          { (yyval.node) = (yyvsp[-1].node); }
 #line 1642 "parser.cpp"
     break;
 
   case 22:
-#line 96 "parser.y"
+#line 95 "parser.y"
                    { (yyval.node) = new thlang::BinOpAst(*(yyvsp[-1].str), std::unique_ptr<thlang::Node>((yyvsp[-2].node)), std::unique_ptr<thlang::Node>((yyvsp[0].node))); delete (yyvsp[-1].str); }
 #line 1648 "parser.cpp"
     break;
 
   case 23:
-#line 97 "parser.y"
+#line 96 "parser.y"
                           { (yyval.node) = new thlang::BinOpAst("%", std::unique_ptr<thlang::Node>((yyvsp[-2].node)), std::unique_ptr<thlang::Node>((yyvsp[0].node))); }
 #line 1654 "parser.cpp"
     break;
 
   case 24:
-#line 98 "parser.y"
+#line 97 "parser.y"
                           { (yyval.node) = new thlang::BinOpAst("*", std::unique_ptr<thlang::Node>((yyvsp[-2].node)), std::unique_ptr<thlang::Node>((yyvsp[0].node))); }
 #line 1660 "parser.cpp"
     break;
 
   case 25:
-#line 99 "parser.y"
+#line 98 "parser.y"
                           { (yyval.node) = new thlang::BinOpAst("/", std::unique_ptr<thlang::Node>((yyvsp[-2].node)), std::unique_ptr<thlang::Node>((yyvsp[0].node))); }
 #line 1666 "parser.cpp"
     break;
 
   case 26:
-#line 100 "parser.y"
+#line 99 "parser.y"
                            { (yyval.node) = new thlang::BinOpAst("+", std::unique_ptr<thlang::Node>((yyvsp[-2].node)), std::unique_ptr<thlang::Node>((yyvsp[0].node))); }
 #line 1672 "parser.cpp"
     break;
 
   case 27:
-#line 101 "parser.y"
+#line 100 "parser.y"
                             { (yyval.node) = new thlang::BinOpAst("-", std::unique_ptr<thlang::Node>((yyvsp[-2].node)), std::unique_ptr<thlang::Node>((yyvsp[0].node))); }
 #line 1678 "parser.cpp"
     break;
 
   case 28:
-#line 102 "parser.y"
+#line 101 "parser.y"
                                     { (yyval.node) = new thlang::UnOpAst("-", std::unique_ptr<thlang::Node>((yyvsp[0].node))); }
 #line 1684 "parser.cpp"
     break;
 
   case 29:
-#line 103 "parser.y"
+#line 102 "parser.y"
                                   { (yyval.node) = new thlang::UnOpAst("+", std::unique_ptr<thlang::Node>((yyvsp[0].node))); }
 #line 1690 "parser.cpp"
     break;
 
   case 30:
-#line 104 "parser.y"
+#line 103 "parser.y"
                                  { (yyval.node) = new thlang::UnOpAst("!", std::unique_ptr<thlang::Node>((yyvsp[0].node))); }
 #line 1696 "parser.cpp"
     break;
 
   case 31:
-#line 105 "parser.y"
+#line 104 "parser.y"
                                      { (yyval.node) = new thlang::CallExprAst(std::unique_ptr<thlang::ExprAst>((yyvsp[-3].expr)), std::unique_ptr<thlang::ExprList>((yyvsp[-1].exprvec))); }
 #line 1702 "parser.cpp"
     break;
 
   case 32:
-#line 107 "parser.y"
+#line 106 "parser.y"
                  { (yyval.str) = new std::string("="); }
 #line 1708 "parser.cpp"
     break;
 
   case 33:
-#line 108 "parser.y"
+#line 107 "parser.y"
                  { (yyval.str) = new std::string("=="); }
 #line 1714 "parser.cpp"
     break;
 
   case 34:
-#line 109 "parser.y"
+#line 108 "parser.y"
                  { (yyval.str) = new std::string("!="); }
 #line 1720 "parser.cpp"
     break;
 
   case 35:
-#line 110 "parser.y"
+#line 109 "parser.y"
                  { (yyval.str) = new std::string("<"); }
 #line 1726 "parser.cpp"
     break;
 
   case 36:
-#line 111 "parser.y"
+#line 110 "parser.y"
                  { (yyval.str) = new std::string("<="); }
 #line 1732 "parser.cpp"
     break;
 
   case 37:
-#line 112 "parser.y"
+#line 111 "parser.y"
                  { (yyval.str) = new std::string(">"); }
 #line 1738 "parser.cpp"
     break;
 
   case 38:
-#line 113 "parser.y"
+#line 112 "parser.y"
                  { (yyval.str) = new std::string(">="); }
 #line 1744 "parser.cpp"
     break;
 
   case 39:
-#line 114 "parser.y"
+#line 113 "parser.y"
                  { (yyval.str) = new std::string("^"); }
 #line 1750 "parser.cpp"
     break;
 
   case 40:
-#line 115 "parser.y"
+#line 114 "parser.y"
                  { (yyval.str) = new std::string("<<"); }
 #line 1756 "parser.cpp"
     break;
 
   case 41:
-#line 116 "parser.y"
+#line 115 "parser.y"
                  { (yyval.str) = new std::string(">>"); }
 #line 1762 "parser.cpp"
     break;
 
   case 42:
-#line 117 "parser.y"
+#line 116 "parser.y"
                  { (yyval.str) = new std::string("&&"); }
 #line 1768 "parser.cpp"
     break;
 
   case 43:
-#line 118 "parser.y"
+#line 117 "parser.y"
                  { (yyval.str) = new std::string("||"); }
 #line 1774 "parser.cpp"
     break;
 
   case 44:
-#line 120 "parser.y"
+#line 119 "parser.y"
                                  { 
     (yyval.node) = new thlang::AssignAst(std::unique_ptr<thlang::ExprAst>((yyvsp[-2].expr)), 
                               std::move(std::unique_ptr<thlang::Node>((yyvsp[0].node)))); 
@@ -1783,7 +1783,7 @@ yyreduce:
     break;
 
   case 45:
-#line 125 "parser.y"
+#line 124 "parser.y"
                                                                                         { 
     (yyval.node) = new thlang::ForStmtAst(std::unique_ptr<thlang::Node>((yyvsp[-6].node)), 
                                std::unique_ptr<thlang::Node>((yyvsp[-4].node)), 
@@ -1794,7 +1794,7 @@ yyreduce:
     break;
 
   case 46:
-#line 132 "parser.y"
+#line 131 "parser.y"
                                                   { 
     (yyval.node) = new thlang::WhileStmtAst(std::unique_ptr<thlang::Node>((yyvsp[-2].node)), 
                                  std::unique_ptr<thlang::Node>((yyvsp[0].block))); 
@@ -1803,7 +1803,7 @@ yyreduce:
     break;
 
   case 47:
-#line 137 "parser.y"
+#line 136 "parser.y"
                                             { 
     (yyval.node) = new thlang::IfStmtAst(std::unique_ptr<thlang::Node>((yyvsp[-2].node)), 
                               std::unique_ptr<thlang::Node>((yyvsp[0].block))); 
@@ -1812,7 +1812,7 @@ yyreduce:
     break;
 
   case 48:
-#line 141 "parser.y"
+#line 140 "parser.y"
                                                          { 
         (yyval.node) = new thlang::IfStmtAst(std::unique_ptr<thlang::Node>((yyvsp[-4].node)), 
                                   std::unique_ptr<thlang::Node>((yyvsp[-2].block)), 
@@ -1822,7 +1822,7 @@ yyreduce:
     break;
 
   case 49:
-#line 146 "parser.y"
+#line 145 "parser.y"
                                                            { 
         auto blk = new thlang::NBlock(); 
         blk->stmts->push_back(std::unique_ptr<thlang::Node>((yyvsp[0].node))); 
@@ -1834,7 +1834,7 @@ yyreduce:
     break;
 
   case 50:
-#line 154 "parser.y"
+#line 153 "parser.y"
                         { 
     (yyval.node) = new thlang::VarStmtAst((yyvsp[-1].type), std::unique_ptr<thlang::ExprAst>((yyvsp[0].expr))); 
 }
@@ -1842,7 +1842,7 @@ yyreduce:
     break;
 
   case 51:
-#line 157 "parser.y"
+#line 156 "parser.y"
                                     {
         (yyval.node) = new thlang::VarStmtAst((yyvsp[-3].type), 
                                    std::unique_ptr<thlang::Node>((yyvsp[-2].expr)), 
@@ -1852,25 +1852,25 @@ yyreduce:
     break;
 
   case 52:
-#line 163 "parser.y"
+#line 162 "parser.y"
                                { (yyval.varvec) = new thlang::VarList(); }
 #line 1858 "parser.cpp"
     break;
 
   case 53:
-#line 164 "parser.y"
+#line 163 "parser.y"
                { (yyval.varvec) = new thlang::VarList(); (yyval.varvec)->push_back(std::unique_ptr<thlang::VarStmtAst>((yyvsp[0].var_decl))); }
 #line 1864 "parser.cpp"
     break;
 
   case 54:
-#line 165 "parser.y"
+#line 164 "parser.y"
                                      { (yyvsp[-2].varvec)->push_back(std::unique_ptr<thlang::VarStmtAst>((yyvsp[0].var_decl))); }
 #line 1870 "parser.cpp"
     break;
 
   case 55:
-#line 168 "parser.y"
+#line 167 "parser.y"
                                                        { 
     (yyval.node) = new thlang::FunctionStmtAst((yyvsp[-5].type), 
                                     std::unique_ptr<thlang::ExprAst>((yyvsp[-4].expr)), 
@@ -1881,7 +1881,7 @@ yyreduce:
     break;
 
   case 56:
-#line 174 "parser.y"
+#line 173 "parser.y"
                                                         {
         (yyval.node) = new thlang::FunctionStmtAst((yyvsp[-4].type), 
                                     std::unique_ptr<thlang::ExprAst>((yyvsp[-3].expr)), 
@@ -1892,37 +1892,37 @@ yyreduce:
     break;
 
   case 57:
-#line 181 "parser.y"
+#line 180 "parser.y"
                                   { (yyval.exprvec) = new thlang::ExprList(); }
 #line 1898 "parser.cpp"
     break;
 
   case 58:
-#line 182 "parser.y"
+#line 181 "parser.y"
            { (yyval.exprvec) = new thlang::ExprList(); (yyval.exprvec)->push_back(std::unique_ptr<thlang::ExprAst>((yyvsp[0].expr))); }
 #line 1904 "parser.cpp"
     break;
 
   case 59:
-#line 183 "parser.y"
+#line 182 "parser.y"
                                  { (yyvsp[-2].exprvec)->push_back(std::unique_ptr<thlang::ExprAst>((yyvsp[0].expr))); }
 #line 1910 "parser.cpp"
     break;
 
   case 60:
-#line 186 "parser.y"
+#line 185 "parser.y"
                   { (yyval.type) = context.typeSystem.get_type("整数型"); }
 #line 1916 "parser.cpp"
     break;
 
   case 61:
-#line 187 "parser.y"
+#line 186 "parser.y"
               { (yyval.type) = (yyvsp[0].type); }
 #line 1922 "parser.cpp"
     break;
 
   case 62:
-#line 190 "parser.y"
+#line 189 "parser.y"
                    { 
     thlang::Type* t = context.typeSystem.get_type(*(yyvsp[0].string)) ;
     if (t == context.typeSystem.get_type("空类型")) {
@@ -1935,7 +1935,7 @@ yyreduce:
     break;
 
   case 63:
-#line 199 "parser.y"
+#line 198 "parser.y"
                   { 
     (yyval.expr) = new thlang::NameAst(*(yyvsp[0].string));
     delete (yyvsp[0].string);
@@ -2176,4 +2176,4 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 204 "parser.y"
+#line 203 "parser.y"

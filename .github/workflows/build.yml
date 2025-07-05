@@ -80,8 +80,8 @@ jobs:
         if: runner.os == 'Windows'
         run: |
           # 初始化 VS 构建环境
-          $vsPath = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
-          cmd /c "call `"$vsPath\VC\Auxiliary\Build\vcvars64.bat`" && bash build.sh"
+          #$vsPath = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
+          #cmd /c "call `"$vsPath\VC\Auxiliary\Build\vcvars64.bat`" && bash build.sh"
 
       - name: Verify LLVM installation
         run: |

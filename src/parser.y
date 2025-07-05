@@ -59,7 +59,6 @@
 
 %parse-param {thlang::NModule &root_program}
 %parse-param {thlang::CodeGenContext &context}
-%define parse.error verbose
 %start program
 %%
 
