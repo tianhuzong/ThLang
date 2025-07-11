@@ -29,6 +29,7 @@
     std::string *values;
     thlang::VarList* varvec;
     thlang::ExprList* exprvec;
+    thlang::TypeList* typevec;
 }
 
 %token <token> TOKEN_INT   /* int */
@@ -46,10 +47,11 @@
 %type<node> expr assign 
 %type<block> block stmts
 %type<str> op
-%type<type> types type_id
+%type<type> types type_id func_type
 %type<expr> var_id
 %type<varvec> func_args
 %type<exprvec> call_args
+%type<typevec> type_list
 
 %left TOKEN_PLUS TOKEN_MINUS
 %left TOKEN_MUL TOKEN_DIV TOKEN_MOD
@@ -80,6 +82,7 @@ stmt : if_stmt { $$ = $1; }
      | for_stmt { $$ = $1; }
      | var_decl { $$ = $1; }
      | func_decl { $$ = $1; }
+     | TOKEN_RETURN  { $$ = new thlang::ReturnStmtAst(nullptr); }
      | TOKEN_RETURN expr { $$ = new thlang::ReturnStmtAst(std::unique_ptr<thlang::Node>($2)); }
      | expr { $$ = new thlang::ExprStmtAst(std::move(std::unique_ptr<thlang::Node>($1))); };
 
@@ -184,11 +187,29 @@ call_args : /* 无参数列表 */ { $$ = new thlang::ExprList(); }
 
 types : TOKEN_INT { $$ = context.typeSystem.get_type("整数型"); }
     | type_id { $$ = $1; }
+    | func_type { $$ = $1; }
     ;
+
+func_type : LPAREN types RPAREN LPAREN RPAREN {  // 无参数情况
+    $$ = new thlang::FunctionType($2, {}); 
+}
+| LPAREN types RPAREN LPAREN type_list RPAREN {  // 带参数列表
+    $$ = new thlang::FunctionType($2, *$5);
+    delete $5;
+};
+
+type_list : types {  // 单个类型
+    $$ = new thlang::TypeList();
+    $$->push_back($1);
+}
+| type_list TOKEN_COMMA types {  // 多个类型（逗号分隔）
+    $1->push_back($3);
+    $$ = $1;
+};
 
 type_id : TOKEN_ID { 
     thlang::Type* t = context.typeSystem.get_type(*$1) ;
-    if (t == context.typeSystem.get_type("空类型")) {
+    if (*$1 != "空类型" && t == context.typeSystem.get_type("空类型")) {
         LogError("未知的数据类型" +  *$1);
     }
     $$ = t;

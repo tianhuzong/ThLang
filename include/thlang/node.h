@@ -21,7 +21,7 @@ class VarStmtAst;
 class ExprAst;
 using VarList = std::vector<std::unique_ptr<VarStmtAst>>;
 using ExprList = std::vector<std::unique_ptr<ExprAst>>;
-
+using TypeList = std::vector<thlang::Type*>;
 
 
 class Node {

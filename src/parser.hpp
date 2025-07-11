@@ -111,8 +111,9 @@ union YYSTYPE
     std::string *values;
     thlang::VarList* varvec;
     thlang::ExprList* exprvec;
+    thlang::TypeList* typevec;
 
-#line 116 "parser.hpp"
+#line 117 "parser.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;

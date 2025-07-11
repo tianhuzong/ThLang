@@ -17,6 +17,6 @@ int main(int argc, char **argv) {
     */
     //thlang::link({"tmp.o","_start.o","-o","start_try","-L../lib","-lthlang"});
     //thlang::compile_fobj_to_exe({"tmp.o","_start.o"},"st_tmp");
-    thlang::compile_from_files_to_exe({"main.th","_start.o"}, "st_temp");
+    thlang::compile_from_files_to_exe({"main.th"}, "st_temp");
     return 0;
 }

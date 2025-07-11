@@ -28,6 +28,8 @@ llvm::Type* Type::get_llvm_type(llvm::LLVMContext& context) {
         return llvm::Type::getInt1Ty(context);
     } else if (type_name == "文本型") {
         return llvm::PointerType::get(llvm::Type::getInt8Ty(context), 0);
+    } else if (type_name == "空类型") {
+        return llvm::Type::getVoidTy(context);
     }
     return nullptr;
 }
@@ -83,7 +85,7 @@ TypeSystem::TypeSystem() {
     add_type("双精度小数型", Type::create("双精度小数型", true,  8));
     add_type("布尔型", Type::create("布尔型", true,  1));
     add_type("文本型", Type::create("文本型", true, DYNAMIC_SIZE));
-    add_type("空类型",empty_type_ptr);
+    add_type("空类型",Type::create("空类型", true, 0));
 }
 
 void TypeSystem::add_type(const std::string& type_name, thlang::Type* type) {

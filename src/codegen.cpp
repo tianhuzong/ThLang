@@ -427,6 +427,10 @@ llvm::Value *WhileStmtAst::codegen(thlang::CodeGenContext &context) {
 }
 
 llvm::Value *ReturnStmtAst::codegen(thlang::CodeGenContext &context) {
+    if (!this->expr){
+        context.builder.CreateRetVoid();
+        return nullptr;
+    }
     llvm::Value *returnValue = this->expr->codegen(context);
     context.builder.CreateRet(returnValue);
     return returnValue;

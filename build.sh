@@ -43,7 +43,7 @@ case "$OS" in
         cp third_party/reflex/lib/libreflexmin.a lib/
         cp third_party/reflex/lib/libreflex.so lib/  # 复制动态库
         # 复制 LLVM 动态库
-        cp $LLVM_LIB_DIR/libLLVM*.so* lib/
+        cp $LLVM_LIB_DIR/libLLVM-18*.so lib/
         EXE_NAME='reflex_exe'
         ;;
     Darwin)

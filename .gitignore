@@ -28,3 +28,6 @@ build/
 #core dumped
 core.*
 vgcore.*
+
+*.so
+*.a
