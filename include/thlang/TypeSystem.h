@@ -45,7 +45,7 @@ class FunctionType : public Type {
 public:
     Type* return_type;
     std::vector<Type*> arg_types;
-    FunctionType(Type* return_type, std::vector<Type*> arg_types) : Type("函数", false, 0), return_type(return_type), arg_types(std::move(arg_types)){} ; // 函数类型不参与隐式复制
+    FunctionType(Type* return_type,const  std::vector<Type*>& arg_types) : Type("函数", false, 0), return_type(return_type), arg_types(std::move(arg_types)){} ; // 函数类型不参与隐式复制
     virtual llvm::Type* get_llvm_type(llvm::LLVMContext& context) override;
 };
 

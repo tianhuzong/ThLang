@@ -195,7 +195,7 @@ union YYSTYPE
     std::string *values;
     thlang::VarList* varvec;
     thlang::ExprList* exprvec;
-    thlang::TypeList* typevec;
+    std::vector<thlang::Type*>* typevec;
 
 #line 201 "parser.cpp"
 

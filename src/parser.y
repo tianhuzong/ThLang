@@ -29,7 +29,7 @@
     std::string *values;
     thlang::VarList* varvec;
     thlang::ExprList* exprvec;
-    thlang::TypeList* typevec;
+    std::vector<thlang::Type*>* typevec;
 }
 
 %token <token> TOKEN_INT   /* int */

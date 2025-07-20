@@ -41,6 +41,7 @@ bool Type::should_implicit_copy() const {
 // --- FunctionType 实现 ---
 llvm::Type* FunctionType::get_llvm_type(llvm::LLVMContext& context) {
     // 函数类型不参与隐式复制
+    std::cout << "\033[31m argty[0]:" << this->arg_types[0]->type_name << "\tretTy:" << this->return_type->type_name << "\033[0m\n";
     std::vector<llvm::Type *> argTypes;
     if (!this->arg_types.empty()) {
         for (const auto &arg : this->arg_types) {
