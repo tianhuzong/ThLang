@@ -65,14 +65,16 @@ public:
         this->moduleName = llvm::sys::path::filename(moduleName);
         theModule = std::make_unique<llvm::Module>("main", this->llvmContext);
     }
+
+
     void codegen(NModule &root);
     std::unordered_map<std::string, thlang::_Symbol> getlocals() {
         return blocks.back()->locals;
     }
     thlang::_Symbol getvalue(std::string name) {
-        for (auto it : blocks) {
-            if (it->locals.find(name) != it->locals.end()) {
-                return it->locals[name];
+        for (auto it = blocks.rbegin(); it != blocks.rend(); ++it) {
+            if ((*it)->locals.find(name) != (*it)->locals.end()) {
+                return (*it)->locals[name];
             }
         }
         return std::make_pair<thlang::Type*, llvm::Value *>(nullptr, nullptr);
@@ -81,6 +83,10 @@ public:
     void setvalue(std::string name, thlang::Type* type, llvm::Value *value) {
         blocks.back()->locals[name] =
                 std::pair<thlang::Type*, llvm::Value *>(type, value);
+    }
+
+    void setglobal(std::string name, thlang::Type* type, llvm::Value *value){
+        blocks[0]->locals[name] = std::pair<thlang::Type*, llvm::Value *>(type, value);
     }
 
     llvm::BasicBlock *currentBlock() { return blocks.back()->block; }
@@ -229,7 +235,7 @@ public:
 std::unique_ptr<llvm::Module> parseIRFromString(llvm::LLVMContext& context, 
                                               const std::string& irText);
 
-llvm::Value *LogError(const char *str);
+
 llvm::Value *LogError(std::string str);
 
 #endif

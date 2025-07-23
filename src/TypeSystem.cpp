@@ -39,9 +39,13 @@ bool Type::should_implicit_copy() const {
 }
 
 // --- FunctionType 实现 ---
+
+thlang::FunctionType* thlang::FunctionType::get(thlang::Type* return_type,const  std::vector<Type*>& arg_types){
+    return new thlang::FunctionType(return_type, arg_types);
+}
+
 llvm::Type* FunctionType::get_llvm_type(llvm::LLVMContext& context) {
     // 函数类型不参与隐式复制
-    std::cout << "\033[31m argty[0]:" << this->arg_types[0]->type_name << "\tretTy:" << this->return_type->type_name << "\033[0m\n";
     std::vector<llvm::Type *> argTypes;
     if (!this->arg_types.empty()) {
         for (const auto &arg : this->arg_types) {
@@ -51,9 +55,9 @@ llvm::Type* FunctionType::get_llvm_type(llvm::LLVMContext& context) {
     }
     llvm::Type* retType = type_System.get_llvm_type(this->return_type);
 
-    llvm::FunctionType *functionType =
-            llvm::FunctionType::get(retType, argTypes, false);
-    return functionType;
+    llvm::FunctionType *functionType = llvm::FunctionType::get(retType, argTypes, false);
+    llvm::PointerType *pointerType = llvm::PointerType::get(functionType, 0);
+    return pointerType;
 }
 
 // --- ClassType 实现 ---
@@ -87,6 +91,13 @@ TypeSystem::TypeSystem() {
     add_type("布尔型", Type::create("布尔型", true,  1));
     add_type("文本型", Type::create("文本型", true, DYNAMIC_SIZE));
     add_type("空类型",Type::create("空类型", true, 0));
+}
+
+TypeSystem::~TypeSystem() {
+    for (auto& [name, typePtr] : type_map) {
+        delete typePtr;  // 释放每个Type对象
+    }
+    type_map.clear();  // 清空map（可选）
 }
 
 void TypeSystem::add_type(const std::string& type_name, thlang::Type* type) {

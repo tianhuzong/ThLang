@@ -46,6 +46,7 @@ public:
     Type* return_type;
     std::vector<Type*> arg_types;
     FunctionType(Type* return_type,const  std::vector<Type*>& arg_types) : Type("函数", false, 0), return_type(return_type), arg_types(std::move(arg_types)){} ; // 函数类型不参与隐式复制
+    static thlang::FunctionType* get(Type* return_type,const  std::vector<Type*>& arg_types);
     virtual llvm::Type* get_llvm_type(llvm::LLVMContext& context) override;
 };
 
@@ -71,7 +72,7 @@ private:
     static Type* empty_type_ptr;
 public:
     TypeSystem() ;
-    
+    ~TypeSystem(); 
     void add_type(const std::string& type_name, Type* type) ;
     llvm::LLVMContext& getContext();
     Type* get_type(const std::string& type_name) ;

@@ -74,6 +74,9 @@ llvm::Value *NameAst::codegen(thlang::CodeGenContext &context) {
         LogError("Name " + this->name + " is not defined");
     }
     // TODO: 修改类型
+    if(context.getvalue(this->name).first->type_name == "函数"){
+        return value;
+    }
     return context.builder.CreateLoad(context.typeSystem.get_llvm_type(context.getvalue(this->name).first), value, false);
 }
 
@@ -207,24 +210,52 @@ llvm::Value* AssignAst::codegen(thlang::CodeGenContext& context) {
 }
 */
 
-llvm::Value *CallExprAst::codegen(thlang::CodeGenContext &context){
-    // TODO: 对不同模块中的函数进行处理 考虑放在语义分析模块
-    thlang::NameAst* function_name = static_cast<thlang::NameAst*>(this->call_name.get());
-    llvm::Function * function = context.theModule->getFunction(function_name->name);
-    if( !function ){
-        LogError("函数" + function_name->name + " 不存在");
-    }
-    if( function->arg_size() != this->args->size() ){
-        // TODO : 具体参数调整
-        LogError("参数数量不匹配" );
-    }
-    std::vector<llvm::Value*> args;
-    for(auto &it : *this->args){
-        args.push_back((it)->codegen(context));
-        if( !args.back() ){        // 如果有参数生成失败，那么返回nullptr
-            return nullptr;
+llvm::Value* CallExprAst::codegen(thlang::CodeGenContext& context) {
+    auto* function_name = static_cast<thlang::NameAst*>(this->call_name.get());
+    
+    // 1. 尝试直接获取函数
+    llvm::Function* function = context.theModule->getFunction(function_name->name);
+    
+    // 2. 如果未找到，从符号表获取（可能是函数指针）
+    if (!function) {
+        auto type = context.getvalue(function_name->name).first;
+        auto value = context.getvalue(function_name->name).second;
+        std::cout << "\033[31mtype: "<< type->type_name << "value: " << value << "\033[0m\n";
+        if (!value) {
+            return LogError("函数 " + function_name->name + " 未定义");
+        }
+        
+        // 如果是函数指针类型，加载其值
+        if (type->type_name == "函数") {
+            function = llvm::dyn_cast<llvm::Function>(value);
+            if (!function) {
+                return LogError("符号 " + function_name->name + " 不是函数");
+            }
+        }
+        // 普通变量则报错
+        else {
+            std::cerr << "\033[31m 调用名: " << function_name->name << " 符号类型: " << type->type_name << "\033[0m\n";
+            for (auto x : context.getlocals()){
+                if (x.first == "f"){
+                    std::cout<< x.first << " , " << x.second.first->type_name << " " << x.second.second << "\n";
+                    x.second.second->dump();
+                }
+            }
+            return LogError("无法调用非函数类型的符号");
         }
     }
+    
+    // 参数检查和调用生成
+    if (function->arg_size() != this->args->size()) {
+        return LogError("参数数量不匹配");
+    }
+    
+    std::vector<llvm::Value*> args;
+    for (auto& arg : *this->args) {
+        args.push_back(arg->codegen(context));
+        if (!args.back()) return nullptr;
+    }
+    
     return context.builder.CreateCall(function, args, "calltmp");
 }
 
@@ -233,26 +264,36 @@ llvm::Value *ExprStmtAst::codegen(thlang::CodeGenContext &context) {
     return this->expr->codegen(context);
 }
 
-llvm::Value *VarStmtAst::codegen(thlang::CodeGenContext &context) {
-    auto nameast = static_cast<thlang::NameAst *>(this->name.get());
-    // TODO:llvm::Value* inst =
-    // context.builder.CreateAlloca(context.typeSystem.get_llvm_type(this->type),
-    // nullptr, nameast->name.c_str());
-    llvm::Value *inst =
-            context.builder.CreateAlloca(context.typeSystem.get_llvm_type(this->type));
-    context.setvalue(nameast->name, this->type, inst);
-    if (this->init != nullptr) {
-        // thlang::ExprAst* exprast = new thlang::ExprAst(*(this->init.get()));
-        auto initExpr = dynamic_cast<thlang::ExprAst *>(this->init.get());
-        if (initExpr == nullptr) {
-            return LogError("初始化表达式类型不匹配");
+llvm::Value* VarStmtAst::codegen(thlang::CodeGenContext& context) {
+    auto* nameast = static_cast<thlang::NameAst*>(this->name.get());
+    
+    // 如果是函数指针类型，直接存储函数地址（不创建alloca）
+    if (auto* funcType = dynamic_cast<thlang::FunctionType*>(this->type)) {
+        if (!init) {
+            return LogError("函数指针必须初始化");
         }
-        thlang::AssignAst assignment(
-                std::make_unique<thlang::NameAst>(nameast->name),
-                std::move(this->init));
-        assignment.codegen(context);
+        
+        llvm::Value* funcValue = init->codegen(context);
+        if (!funcValue) return nullptr;
+        
+        // 直接保存函数指针到符号表
+        context.setvalue(nameast->name, this->type, funcValue);
+        return funcValue;
     }
-    return inst;
+    // 普通变量：使用alloca + store
+    else {
+        llvm::Value* inst = context.builder.CreateAlloca(
+            context.typeSystem.get_llvm_type(this->type)
+        );
+        context.setvalue(nameast->name, this->type, inst);
+        
+        if (init) {
+            llvm::Value* initVal = init->codegen(context);
+            if (!initVal) return nullptr;
+            context.builder.CreateStore(initVal, inst);
+        }
+        return inst;
+    }
 }
 
 llvm::Value *IfStmtAst::codegen(CodeGenContext &context) {
@@ -479,7 +520,15 @@ llvm::Value *FunctionStmtAst::codegen(thlang::CodeGenContext &context) {
         // 生成函数体代码
         this->block->codegen(context);
     }
-
+    std::vector<thlang::Type*> args_thlangtype;
+    for (const auto &arg : *this->args) {
+        args_thlangtype.push_back(arg->type);
+    }
+    if(function_name->name != "入口" && function_name->name != "main" ){
+        llvm::Value* function_value = function;
+        context.setglobal(function_name->name, thlang::FunctionType::get(this->type, std::move(args_thlangtype)), function_value);
+        std::cout << "function_name: " << (function_name->name) << "\tptr: " << context.getvalue((function_name->name)).second << "\n";
+    }
     return function;
 }
 
@@ -513,5 +562,3 @@ llvm::Value *LogError(std::string str) {
     std::cerr << str << "\n";
     return nullptr;
 }
-
-llvm::Value *LogError(const char *str) { return LogError(str); }
