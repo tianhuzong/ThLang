@@ -40,6 +40,7 @@ thlang/
 │       │   ├── Sema.h                 # 语义分析主入口
 │       │   ├── SymbolTable.h
 │       │   ├── TypeChecker.h
+│       │   ├── TypeSystem.h
 │       │   └── BorrowChecker.h        # 后期添加
 │       ├── codegen/
 │       │   ├── IRGenerator.h
@@ -64,6 +65,7 @@ thlang/
 │   ├── sema/
 │   │   ├── Sema.cpp
 │   │   ├── SymbolTable.cpp
+│   │   ├── TypeSystem.cpp
 │   │   └── TypeChecker.cpp
 │   │   └── BorrowChecker.cpp          # 后期添加
 │   ├── codegen/
